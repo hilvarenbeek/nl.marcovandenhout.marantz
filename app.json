@@ -1,0 +1,92 @@
+{
+    "id": "nl.marcovandenhout.marantz",
+    "name": {
+        "en": "Marantz"
+    },
+    "version": "0.0.1",
+    "compatibility": "0.x || 1.x",
+    "author": {
+        "name": "Marco van den Hout",
+        "email": "marco@vandenhout.org"
+    },
+    "description": {
+    "en": "Marantz IP control app for Homey",
+    "nl": "Dit is een Marantz IP aansturing app voor Homey"
+    },
+    "dependencies": {
+    		"net": "*"
+    },
+    "drivers": [
+      {
+          "id": "amplifier",
+          "name": {
+              "en": "Marantz amplifier",
+              "nl": "Marantz versterker"
+          },
+          "images": {
+              "large": "drivers/amplifier/assets/images/large.jpg",
+              "small": "drivers/amplifier/assets/images/small.jpg"
+          },
+          "class": "other",
+          "capabilities": [ "" ],
+          "pair": [
+            {
+              "id": "start"
+            },
+            {
+              "id": "list_devices",
+              "template": "list_devices",
+              "navigation": {
+                  "next": "add_amplifier"
+              }
+            },
+            {
+              "id": "add_amplifier",
+              "template": "add_devices"
+            }
+          ]
+      }
+    ],
+    "flow": {
+        "actions": [
+        {
+            "id": "powerOn",
+            "title": {
+                "en": "Turn power on"
+            },
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "style": {
+                  "width": "50%"
+                },
+                "placeholder": {
+                  "en": "Select amp",
+                  "nl": "Selecteer versterker"
+                }
+              }
+            ]
+        },
+        {
+            "id": "standby",
+            "title": {
+                "en": "Go to standby"
+            },
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "style": {
+                  "width": "50%"
+                },
+                "placeholder": {
+                  "en": "Select amp",
+                  "nl": "Selecteer versterker"
+                }
+              }
+            ]
+        }
+      ]
+    }
+}
