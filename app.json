@@ -3,7 +3,7 @@
     "name": {
         "en": "Marantz"
     },
-    "version": "0.0.1",
+    "version": "0.0.2",
     "compatibility": "0.x || 1.x",
     "author": {
         "name": "Marco van den Hout",
@@ -79,6 +79,74 @@
             "title": {
                 "en": "Go to standby",
                 "nl": "Ga naar standby"
+            },
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "style": {
+                  "width": "50%"
+                },
+                "placeholder": {
+                  "en": "Select amplifier",
+                  "nl": "Selecteer versterker"
+                }
+              }
+            ]
+        },
+        {
+            "id": "changeInput",
+            "title": {
+                "en": "Switch input",
+                "nl": "Schakel input"
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": "autocomplete",
+                "placeholder": {
+                  "en": "input",
+                  "nl": "input"
+                }
+              },
+              {
+                "name": "device",
+                "type": "device",
+                "style": {
+                  "width": "50%"
+                },
+                "placeholder": {
+                  "en": "Select amplifier",
+                  "nl": "Selecteer versterker"
+                }
+              }
+            ]
+        },
+        {
+            "id": "mute",
+            "title": {
+                "en": "Mute",
+                "nl": "Mute"
+            },
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "style": {
+                  "width": "50%"
+                },
+                "placeholder": {
+                  "en": "Select amplifier",
+                  "nl": "Selecteer versterker"
+                }
+              }
+            ]
+        },
+        {
+            "id": "unMute",
+            "title": {
+                "en": "Turn mute off",
+                "nl": "Zet mute uit"
             },
             "args": [
               {
