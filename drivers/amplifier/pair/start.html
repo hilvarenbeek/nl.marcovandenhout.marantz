@@ -27,6 +27,7 @@ function saveSettings () {
 	var inputIPAddress = document.getElementById( 'ipAddress' ).value;
 
 	// If required values are filled in
+	// FIXME: should check if this is a real IPv4 address
 	if (inputIPAddress != '') {
 
 		// Build data array
@@ -66,7 +67,7 @@ function saveSettings () {
 		<table class="pairSettings">
 			<tr>
 				<td style="width:100px;" data-i18n="pair.start.ipAddress">IP</td>
-				<td><input id="ipAddress" type="text" value="192.168.." placeholder=""/></td>
+				<td><input id="ipAddress" type="text" value="192.168.1.10" placeholder=""/></td>
 				<td>&nbsp;</td>
 			</tr>
 		</table>
