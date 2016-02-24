@@ -3,7 +3,7 @@
     "name": {
         "en": "Marantz"
     },
-    "version": "0.0.3",
+    "version": "0.0.4",
     "compatibility": "0.x || 1.x",
     "author": {
         "name": "Marco van den Hout",
