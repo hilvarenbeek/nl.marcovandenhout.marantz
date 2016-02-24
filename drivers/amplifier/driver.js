@@ -95,8 +95,7 @@ module.exports.pair = function( socket ) {
 	// which happens when you use the template `list_devices`
 	socket.on('list_devices', function( data, callback ) {
 
-	console.log( "Marantz app - list_devices data is ", data );
-	console.log( "Marantz app - list_devices tempIP is ", tempIP );
+	console.log( "Marantz app - list_devices tempIP is", tempIP );
 
 		var devices = [{
 			data: {
@@ -115,8 +114,8 @@ module.exports.pair = function( socket ) {
 	socket.on('get_devices', function( data, callback ) {
 
 		// Set passed pair settings in variables
-		var tempIP = data.ipaddress;
-		console.log ( "Marantz app - got get_devices from front-end, tempIP = ", tempIP );
+		tempIP = data.ipaddress;
+		console.log ( "Marantz app - got get_devices from front-end, tempIP =", tempIP );
 
 		// FIXME: should check if IP leads to an actual Marantz device
 
@@ -128,8 +127,9 @@ module.exports.pair = function( socket ) {
 	socket.on('disconnect', function(){
 			console.log("Marantz app - User aborted pairing, or pairing is finished");
 	})
-
 }
+
+// flow action handlers
 
 Homey.manager('flow').on('action.powerOn', function( callback, args ){
 	var tempIP = args.device.ipaddress;
