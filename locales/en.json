@@ -1,11 +1,12 @@
 {
 	"pair": {
 		"start": {
-      "intro": "Enter your device's IP address.",
+      "intro": "Enter your device's IP address and give it a name.",
 			"title": "Finding device...",
 			"error": "An error has occurred.",
       "required": "IP address is a required value.",
       "ipAddress": "IP address",
+			"deviceName": "Device name",
       "saveSettings": "Save settings"
 		}
   }

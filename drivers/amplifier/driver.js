@@ -8,9 +8,6 @@ var allPossibleInputs = [
 		{	inputName: "CD",
 	 		friendlyName: "CD player"
 		},
-		{	inputName: "TUNER",
-	 		friendlyName: "Tuner"
-		},
 		{	inputName: "DVD",
 	 		friendlyName: "DVD player"
 		},
@@ -23,35 +20,47 @@ var allPossibleInputs = [
 		{	inputName: "SAT/CBL",
 	 		friendlyName: "SAT/Cable TV"
 		},
+		{	inputName: "SAT",
+			friendlyName: "Satellite"
+		},
+		{	inputName: "MPLAY",
+			friendlyName: "Media Player"
+		},
+		{	inputName: "VCR",
+			friendlyName: "VCR"
+		},
 		{	inputName: "GAME",
 	 		friendlyName: "Game"
 		},
 		{	inputName: "V.AUX",
 	 		friendlyName: "Video Aux"
 		},
+		{	inputName: "TUNER",
+	 		friendlyName: "Tuner"
+		},
 		{	inputName: "DOCK",
 	 		friendlyName: "Dock"
+		},
+		{	inputName: "HDRADIO",
+			friendlyName: "HD Radio"
 		},
 		{	inputName: "SIRIUS",
 	 		friendlyName: "Sirius Radio"
 		},
-		{	inputName: "HDRADIO",
-	 		friendlyName: "HD Radio"
+		{	inputName: "SPOTIFY",
+			friendlyName: "Spotify"
 		},
-		{	inputName: "IPOD",
-	 		friendlyName: "iPod"
-		},
-		{	inputName: "NET/USB",
-	 		friendlyName: "Net/USB"
+		{	inputName: "SIRIUSXM",
+	 		friendlyName: "SiriusXM"
 		},
 		{	inputName: "RHAPSODY",
 	 		friendlyName: "Rhapsody"
 		},
-		{	inputName: "NAPSTER",
-	 		friendlyName: "Napster"
-		},
 		{	inputName: "PANDORA",
 	 		friendlyName: "Pandora"
+		},
+		{	inputName: "NAPSTER",
+	 		friendlyName: "Napster"
 		},
 		{	inputName: "LASTFM",
 	 		friendlyName: "Last.fm"
@@ -59,32 +68,80 @@ var allPossibleInputs = [
 		{	inputName: "FLICKR",
 	 		friendlyName: "Flickr"
 		},
-		{	inputName: "FAVORITES",
-	 		friendlyName: "Favorites"
-		},
 		{	inputName: "IRADIO",
 	 		friendlyName: "Internet Radio"
 		},
 		{	inputName: "SERVER",
 	 		friendlyName: "Server"
 		},
-		{	inputName: "USB/IPOD",
-	 		friendlyName: "USB/iPod"
+		{	inputName: "FAVORITES",
+	 		friendlyName: "Favorites"
 		},
-		{	inputName: "AUXA",
-			friendlyName: "AUX A"
+		{	inputName: "CDR",
+	 		friendlyName: "CDR"
 		},
-		{	inputName: "AUXB",
-	 		friendlyName: "AUX B"
+		{	inputName: "AUX1",
+	 		friendlyName: "Aux 1"
 		},
-		{	inputName: "AUXC",
-	 		friendlyName: "AUX C"
+		{	inputName: "AUX2",
+	 		friendlyName: "Aux 2"
+		},
+		{	inputName: "AUX3",
+	 		friendlyName: "Aux 3"
+		},
+		{	inputName: "AUX4",
+	 		friendlyName: "Aux 4"
+		},
+		{	inputName: "AUX5",
+	 		friendlyName: "Aux 5"
+		},
+		{	inputName: "AUX6",
+	 		friendlyName: "Aux 6"
+		},
+		{	inputName: "AUX7",
+	 		friendlyName: "Aux 7"
+		},
+		{	inputName: "NET",
+	 		friendlyName: "Net"
+		},
+		{	inputName: "NET/USB",
+	 		friendlyName: "Net/USB"
+		},
+		{	inputName: "BT",
+	 		friendlyName: "Bluetooth"
 		},
 		{	inputName: "M-XPORT",
 	 		friendlyName: "M-XPort"
 		},
+		{	inputName: "USB/IPOD",
+	 		friendlyName: "USB/iPod"
+		},
 		{	inputName: "USB",
 	 		friendlyName: "USB port"
+		},
+		{	inputName: "IPD",
+	 		friendlyName: "iPod direct start playback"
+		},
+		{	inputName: "IRP",
+	 		friendlyName: "Internet Radio Recent Play"
+		},
+		{	inputName: "FVP",
+	 		friendlyName: "Online Music Favorites Play"
+		},
+		{	inputName: "OTP",
+	 		friendlyName: "One Touch Play"
+		},
+		{	inputName: "IPOD",
+	 		friendlyName: "iPod"
+		},
+		{	inputName: "AUXA",
+			friendlyName: "Aux A"
+		},
+		{	inputName: "AUXB",
+	 		friendlyName: "Aux B"
+		},
+		{	inputName: "AUXC",
+	 		friendlyName: "Aux C"
 		}
 ];
 
@@ -102,7 +159,7 @@ module.exports.pair = function( socket ) {
 				id				: tempIP,
 				ipaddress : tempIP
 			},
-			name: 'Marantz amp'
+			name: tempDeviceName
 		}];
 
 		callback( null, devices );
@@ -115,6 +172,7 @@ module.exports.pair = function( socket ) {
 
 		// Set passed pair settings in variables
 		tempIP = data.ipaddress;
+		tempDeviceName = data.deviceName;
 		console.log ( "Marantz app - got get_devices from front-end, tempIP =", tempIP );
 
 		// FIXME: should check if IP leads to an actual Marantz device
