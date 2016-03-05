@@ -1,0 +1,13 @@
+{
+	"pair": {
+		"start": {
+      "intro": "Vul het IP adres van uw apparaat in en geef het een naam.",
+			"title": "Apparaat zoeken...",
+			"error": "Er is een fout opgetreden.",
+      "required": "IP adres is verplicht.",
+      "ipAddress": "IP adres",
+			"deviceName": "Naam van het apparaat",
+      "saveSettings": "Gegevens opslaan"
+		}
+  }
+}
