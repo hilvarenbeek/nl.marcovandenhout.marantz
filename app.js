@@ -3,7 +3,7 @@
 function init() {
 
 	Homey.log("Marantz app - init start");
-	Homey.log ("Marantz app - init done");
+	Homey.log("Marantz app - init done");
 
 }
 

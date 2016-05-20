@@ -3,7 +3,7 @@
     "name": {
         "en": "Marantz"
     },
-    "version": "0.0.5",
+    "version": "0.0.6",
     "compatibility": "0.x || 1.x",
     "author": {
         "name": "Marco van den Hout",
@@ -48,6 +48,24 @@
             {
               "id": "add_amplifier",
               "template": "add_devices"
+            }
+          ],
+          "settings": [
+            {
+              "type": "group",
+                      "label": {
+                          "en": "General settings"
+                      },
+                      "children": [
+                          {
+                              "id": "settingIPAddress",
+                              "type": "text",
+                              "label": {
+                                  "en": "IP address"
+                              },
+                              "value": "0.0.0.0"
+                          }
+                      ]
             }
           ]
       }
