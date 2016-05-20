@@ -159,7 +159,8 @@ module.exports.pair = function( socket ) {
 				id				: tempIP,
 				ipaddress : tempIP
 			},
-			name: tempDeviceName
+			name: tempDeviceName,
+			settings: { "settingIPAddress": tempIP } // initial settings
 		}];
 
 		callback( null, devices );
@@ -187,28 +188,56 @@ module.exports.pair = function( socket ) {
 	})
 }
 
+// handling settings (wrench icon in devices)
+
+module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback ) {
+    // run when the user has changed the device's settings in Homey.
+    // changedKeysArr contains an array of keys that have been changed, for your convenience :)
+
+    // always fire the callback, or the settings won't change!
+    // if the settings must not be saved for whatever reason:
+    // callback( "Your error message", null );
+    // else callback( null, true );
+
+		Homey.log ('Marantz app - Settings were changed: ' + JSON.stringify(device_data) + ' / ' + JSON.stringify(newSettingsObj) + ' / old = ' + JSON.stringify(oldSettingsObj) + ' / changedKeysArr = ' + JSON.stringify(changedKeysArr));
+
+		try {
+      changedKeysArr.forEach(function (key) {
+					switch (key) {
+						case 'settingIPAddress':
+							newIP = newSettingsObj.settingIPAddress;
+							Homey.log ('Marantz app - IP address changed to ' + newIP);
+							break;
+					}
+      })
+      callback(null, true)
+    } catch (error) {
+      callback(error)
+    }
+
+}
+
 // flow action handlers
 
 Homey.manager('flow').on('action.powerOn', function( callback, args ){
-	var tempIP = args.device.ipaddress;
+	var device = args.device;
 	var zone = args.zone;
-	console.log ( "Marantz app - flow action powerOn, IP " + tempIP );
-	powerOn ( tempIP, zone );
+	powerOn ( device, zone );
   callback( null, true ); // we've fired successfully
 });
 
 Homey.manager('flow').on('action.powerOff', function( callback, args ){
-	var tempIP = args.device.ipaddress;
+	var device = args.device;
 	var zone = args.zone;
-	powerOff ( tempIP, zone );
+	powerOff ( device, zone );
   callback( null, true ); // we've fired successfully
 });
 
 Homey.manager('flow').on('action.changeInput', function( callback, args ){
 	var input = args.input.inputName;
 	var zone = args.zone;
-	var tempIP = args.device.ipaddress;
-	changeInputSource ( tempIP, zone, input );
+	var device = args.device;
+	changeInputSource ( device, zone, input );
   callback( null, true ); // we've fired successfully
 });
 
@@ -219,30 +248,30 @@ Homey.manager('flow').on('action.changeInput.input.autocomplete', function( call
 });
 
 Homey.manager('flow').on('action.mute', function( callback, args ){
-	var tempIP = args.device.ipaddress;
+	var device = args.device;
 	var zone = args.zone;
-	mute ( tempIP, zone );
+	mute ( device, zone );
   callback( null, true ); // we've fired successfully
 });
 
 Homey.manager('flow').on('action.unMute', function( callback, args ){
-	var tempIP = args.device.ipaddress;
+	var device = args.device;
 	var zone = args.zone;
-	unMute ( tempIP, zone );
+	unMute ( device, zone );
   callback( null, true ); // we've fired successfully
 });
 
 Homey.manager('flow').on('action.setVolume', function( callback, args ){
-	var tempIP = args.device.ipaddress;
+	var device = args.device;
 	var zone = args.zone;
 	var targetVolume = args.volume;
-	setVolume ( tempIP, zone, targetVolume );
+	setVolume ( device, zone, targetVolume );
   callback( null, true ); // we've fired successfully
 });
 
 //
 
-function powerOn ( hostIP, zone ) {
+function powerOn ( device, zone ) {
 	// supported zones: "Whole unit" (default), "Main Zone", "Zone2"
 	var command = 'PWON\r';
 	switch (zone) {
@@ -256,10 +285,10 @@ function powerOn ( hostIP, zone ) {
 			command = 'Z2ON\r'
 			break;
 	}
-	sendCommand ( hostIP, command );
+	sendCommandToDevice ( device, command );
 }
 
-function powerOff ( hostIP, zone ) {
+function powerOff ( device, zone ) {
 	// supported zones: "Whole unit" (default), "Main Zone", "Zone2"
 	var command = 'PWSTANDBY\r';
 	switch (zone) {
@@ -273,10 +302,10 @@ function powerOff ( hostIP, zone ) {
 			command = 'Z2OFF\r'
 			break;
 	}
-	sendCommand ( hostIP, command );
+	sendCommandToDevice ( device, command );
 }
 
-function changeInputSource ( hostIP, zone, input ) {
+function changeInputSource ( device, zone, input ) {
 	// supported zones: "Main Zone" (default), "Zone2", "Zone3"
 		var sourceZone = 'SI';
 		switch (zone) {
@@ -291,10 +320,10 @@ function changeInputSource ( hostIP, zone, input ) {
 				break;
 		}
 		var command = sourceZone+input+'\r';
-		sendCommand ( hostIP, command );
+		sendCommandToDevice ( device, command );
 }
 
-function mute ( hostIP, zone ) {
+function mute ( device, zone ) {
 	// supported zones: "Main Zone" (default), "Zone2", "Zone3"
 	var command = 'MUON\r';
 	switch (zone) {
@@ -308,10 +337,10 @@ function mute ( hostIP, zone ) {
 			command = 'Z3MUON\r'
 			break;
 	}
-	sendCommand ( hostIP, command );
+	sendCommandToDevice ( device, command );
 }
 
-function unMute ( hostIP, zone ) {
+function unMute ( device, zone ) {
 	// supported zones: "Main Zone" (default), "Zone2", "Zone3"
 	var command = 'MUOFF\r';
 	switch (zone) {
@@ -325,10 +354,10 @@ function unMute ( hostIP, zone ) {
 			command = 'Z3MUOFF\r'
 			break;
 	}
-	sendCommand ( hostIP, command );
+	sendCommandToDevice ( device, command );
 }
 
-function setVolume ( hostIP, zone, targetVolume ) {
+function setVolume ( device, zone, targetVolume ) {
 // volume ranges from 00 to 99
 // apparently half steps are possible but not used here, eg 805 is 80.5
 // according to Marantz protocol some models have 99 as --, some have 00 as --
@@ -348,14 +377,27 @@ function setVolume ( hostIP, zone, targetVolume ) {
 			break;
 	}
 	var command = volumeZone+asciiVolume+'\r';
-	sendCommand ( hostIP, command );
+	sendCommandToDevice ( device, command );
 }
 
 //
 
+function sendCommandToDevice ( device, command ) {
+	console.log ( "Marantz app - sending "+command+"\n to device "+device.id );
+//	tempIP = device.ipaddress;
+	module.exports.getSettings (device, function(err, settings){
+		console.log ( "Marantz app - got settings "+JSON.stringify(settings) );
+		tempIP = settings.settingIPAddress;
+		sendCommand ( tempIP, command );
+	});
+}
+
 function sendCommand ( hostIP, command ) {
 	console.log ( "Marantz app - sending "+command+"\n to "+hostIP );
 	var client = new net.Socket();
+	client.on('error', function(err){
+	    Homey.log("Marantz app - IP socket error: "+err.message);
+	})
 	client.connect(telnetPort, hostIP);
 	client.write(command);
 	client.end();
