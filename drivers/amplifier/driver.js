@@ -1,6 +1,7 @@
 var net = require('net');
 var tempIP = '';
 var telnetPort = 23;
+var devices = {};
 var allPossibleInputs = [
 		{	inputName: "PHONO",
 	 		friendlyName: "Phono"
@@ -188,6 +189,8 @@ module.exports.pair = function( socket ) {
 	})
 }
 
+// FIXME: handle devices array!!
+
 // handling settings (wrench icon in devices)
 
 module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback ) {
@@ -217,7 +220,112 @@ module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj,
 
 }
 
-// flow action handlers
+// capabilities
+
+module.exports.capabilities = {
+    onoff: {
+
+        get: function( device_data, callback ){
+
+					Homey.log('Getting device_status of ' + devices[device_data.id].settings.ipaddress);
+					// FIXME: should get onoff status here
+					callback (null, true);
+        },
+
+        set: function( device_data, turnon, callback ) {
+
+	        Homey.log('Setting device_status of ' + devices[device_data.id].settings.ipaddress + ' to ' + turnon);
+
+					if (turnon) {
+
+						// FIXME: should send command to turn on here
+						callback (null, true);
+
+					} else {
+
+						// FIXME: should send command to turn off here
+						callback (null, true);
+
+					}
+
+        }
+    },
+
+    volume_set: {
+
+        get: function( device_data, callback ){
+
+			Homey.log('Getting volume of ' + devices[device_data.id].settings.ipaddress);
+				// FIXME: should get actual volume setting
+						var volume = 1;
+	         	callback (null, volume);
+
+        },
+
+        set: function( device_data, volume, callback ) {
+
+	        Homey.log('Setting volume of ' + devices[device_data.id].settings.ipaddress + ' to ' + volume);
+					// FIXME: should send command to actually set volume here
+					callback (null, true);
+
+        }
+    },
+
+		volume_up: {
+
+				set: function( device_data, callback ) {
+
+					Homey.log('Turning up volume of ' + devices[device_data.id].settings.ipaddress);
+					// FIXME: should send command to actually set volume here
+					callback (null, true);
+
+				}
+		},
+
+		volume_down: {
+
+				set: function( device_data, callback ) {
+
+					Homey.log('Turning down volume of ' + devices[device_data.id].settings.ipaddress);
+					// FIXME: should send command to actually set volume here
+					callback (null, true);
+
+				}
+		},
+
+		volume_mute: {
+
+        get: function( device_data, callback ){
+
+					Homey.log('Getting mute status of ' + devices[device_data.id].settings.ipaddress);
+					// FIXME: should get mute status here
+					callback (null, true);
+        },
+
+        set: function( device_data, muteon, callback ) {
+
+	        Homey.log('Setting mute status of ' + devices[device_data.id].settings.ipaddress + ' to ' + muteon);
+
+					if (muteon) {
+
+						// FIXME: should send command to mute here
+						callback (null, true);
+
+					} else {
+
+						// FIXME: should send command to unmute here
+						callback (null, true);
+
+					}
+
+        }
+    }
+
+}
+
+// end capabilities
+
+// start flow action handlers
 
 Homey.manager('flow').on('action.powerOn', function( callback, args ){
 	var device = args.device;

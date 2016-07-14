@@ -8,6 +8,11 @@ In its current state, the app requires that you enter the amplifier's IP address
 
 # Changelog
 
+**Version 0.0.7:**
+CURRENTLY IN DEVELOPMENT (i.e. broken as is!)
+- Rewrite according to updated developers documentation at Athom
+- Changed device class to speaker
+
 **Version 0.0.6:**
 - Made the IP address a setting, so you can change it from the Devices tab using the wrench icon (mouseover)
 - Improved error handling on network connectivity problems so the app is less likely to crash when it couldn't open a network socket
