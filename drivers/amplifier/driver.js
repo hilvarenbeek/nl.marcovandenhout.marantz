@@ -1,7 +1,14 @@
+// We need network functions.
 var net = require('net');
+// Temporarily store the device's IP address and name. For later use, it gets added to the device's settings
 var tempIP = '';
+var tempDeviceName = '';
+// The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
 var telnetPort = 23;
+// Device information (device_data) gets stored in an array
 var devices = {};
+// All known inputs for supported Denon/Marantz AV receivers and a more friendly name to use.
+// If you find your favorite input missing, please file a bug on the GitHub repository.
 var allPossibleInputs = [
 		{	inputName: "PHONO",
 	 		friendlyName: "Phono"
@@ -146,53 +153,85 @@ var allPossibleInputs = [
 		}
 ];
 
-module.exports.pair = function( socket ) {
-	// socket is a direct channel to the front-end
+// init gets run at the time the app is loaded. We get the already added devices then need to run the callback when done.
+module.exports.init = function( devices_data, callback ) {
 
-	// this method is run when Homey.emit('list_devices') is run on the front-end
-	// which happens when you use the template `list_devices`
+    devices_data.forEach(function initdevice(device) {
+//populate devices array
+	    Homey.log('Marantz app - init device: ' + JSON.stringify(device));
+	    devices[device.id] = device;
+//put each device's settings in the devices array
+	    module.exports.getSettings(device, function( err, settings ){
+		    devices[device.id].settings = settings;
+			})
+		})
+
+	Homey.log("Marantz app - driver init done");
+//tell Homey we're happy to go
+	callback (null, true);
+};
+
+
+// start of pairing functions
+module.exports.pair = function( socket ) {
+// socket is a direct channel to the front-end
+
+// this method is run when Homey.emit('list_devices') is run on the front-end
+// which happens when you use the template `list_devices`
 	socket.on('list_devices', function( data, callback ) {
 
-	console.log( "Marantz app - list_devices tempIP is", tempIP );
+		console.log( "Marantz app - list_devices data: " + JSON.stringify(data));
+// tempIP and tempDeviceName we got from when get_devices was run (hopefully?)
 
-		var devices = [{
+		var newDevices = [{
 			data: {
-				id				: tempIP,
-				ipaddress : tempIP
+				id				: tempIP
 			},
 			name: tempDeviceName,
 			settings: { "settingIPAddress": tempIP } // initial settings
 		}];
 
-		callback( null, devices );
-
+		callback( null, newDevices );
 	});
 
-// this is called when the user presses save settings button in start.html
 
+// this is called when the user presses save settings button in start.html
 	socket.on('get_devices', function( data, callback ) {
 
 		// Set passed pair settings in variables
 		tempIP = data.ipaddress;
 		tempDeviceName = data.deviceName;
-		console.log ( "Marantz app - got get_devices from front-end, tempIP =", tempIP );
-
-		// FIXME: should check if IP leads to an actual Marantz device
-
-		// assume IP is OK and continue
+		console.log ( "Marantz app - got get_devices from front-end, tempIP =", tempIP, " tempDeviceName = ", tempDeviceName );
+// FIXME: should check if IP leads to an actual Marantz device
+// assume IP is OK and continue, which will cause the front-end to run list_amplifiers which is the template list_devices
 		socket.emit ( 'continue', null );
-
 	});
 
-	socket.on('disconnect', function(){
-			console.log("Marantz app - User aborted pairing, or pairing is finished");
-	})
-}
+// this gets called when a device is added
+	socket.on('add_device', function (device, callback) {
+    Homey.log( "Marantz app - pairing: device added", device);
 
-// FIXME: handle devices array!!
+// update devices data array
+		devices[device.data.id] = {
+        	id: device.data.id,
+					name: device.name,
+					settings: {
+						settingIPAddress: device.settings.ipaddress
+            }
+        };
+
+    Homey.log('Marantz app - add done. devices =' + JSON.stringify(devices));
+		callback(null);
+    });
+
+
+		socket.on('disconnect', function() {
+			console.log("Marantz app - User aborted pairing, or pairing is finished");
+	  })
+}
+// end pair
 
 // handling settings (wrench icon in devices)
-
 module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback ) {
     // run when the user has changed the device's settings in Homey.
     // changedKeysArr contains an array of keys that have been changed, for your convenience :)

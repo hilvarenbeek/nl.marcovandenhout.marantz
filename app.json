@@ -33,19 +33,20 @@
               "small": "drivers/amplifier/assets/images/small.jpg"
           },
           "class": "speaker",
+          "capabilities": [ "onoff", "volume_set", "volume_down", "volume_up", "volume_mute" ],
           "pair": [
             {
               "id": "start"
             },
             {
-              "id": "list_devices",
+              "id": "list_amplifiers",
               "template": "list_devices",
               "navigation": {
-                  "next": "add_amplifier"
+                  "next": "add_amplifiers"
               }
             },
             {
-              "id": "add_amplifier",
+              "id": "add_amplifiers",
               "template": "add_devices"
             }
           ],
