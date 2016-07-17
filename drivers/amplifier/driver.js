@@ -1,3 +1,5 @@
+"use strict";
+
 // We need network functions.
 var net = require('net');
 // Temporarily store the device's IP address and name. For later use, it gets added to the device's settings
@@ -5,7 +7,9 @@ var tempIP = '';
 var tempDeviceName = '';
 // The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
 var telnetPort = 23;
-// Device information (device_data) gets stored in an array
+// a list of devices, with their 'id' as key
+// it is generally advisable to keep a list of
+// paired and active devices in your driver's memory.
 var devices = {};
 // All known inputs for supported Denon/Marantz AV receivers and a more friendly name to use.
 // If you find your favorite input missing, please file a bug on the GitHub repository.
@@ -155,22 +159,13 @@ var allPossibleInputs = [
 
 // init gets run at the time the app is loaded. We get the already added devices then need to run the callback when done.
 module.exports.init = function( devices_data, callback ) {
-
-    devices_data.forEach(function initdevice(device) {
-//populate devices array
-	    Homey.log('Marantz app - init device: ' + JSON.stringify(device));
-	    devices[device.id] = device;
-//put each device's settings in the devices array
-	    module.exports.getSettings(device, function( err, settings ){
-		    devices[device.id].settings = settings;
-			})
-		})
-
-	Homey.log("Marantz app - driver init done");
-//tell Homey we're happy to go
-	callback (null, true);
-};
-
+	devices_data.forEach(function(device_data){
+		Homey.log('Marantz app - init device: ' + JSON.stringify(device_data));
+	  initDevice( device_data );
+	})
+	//tell Homey we're happy to go
+	  callback();
+}
 
 // start of pairing functions
 module.exports.pair = function( socket ) {
@@ -207,22 +202,22 @@ module.exports.pair = function( socket ) {
 		socket.emit ( 'continue', null );
 	});
 
-// this gets called when a device is added
-	socket.on('add_device', function (device, callback) {
-    Homey.log( "Marantz app - pairing: device added", device);
-
-// update devices data array
-		devices[device.data.id] = {
-        	id: device.data.id,
-					name: device.name,
-					settings: {
-						settingIPAddress: device.settings.ipaddress
-            }
-        };
-
-    Homey.log('Marantz app - add done. devices =' + JSON.stringify(devices));
-		callback(null);
-    });
+// // this gets called when a device is added
+// 	socket.on('add_device', function (device, callback) {
+//     Homey.log( "Marantz app - pairing: device added", device);
+//
+// // update devices data array
+// 		devices[device.data.id] = {
+//         	id: device.data.id,
+// 					name: device.name,
+// 					settings: {
+// 						settingIPAddress: device.settings.ipaddress
+//             }
+//         };
+//
+//     Homey.log('Marantz app - add done. devices =' + JSON.stringify(devices));
+// 		callback(null);
+//     });
 
 
 		socket.on('disconnect', function() {
@@ -230,6 +225,31 @@ module.exports.pair = function( socket ) {
 	  })
 }
 // end pair
+
+module.exports.added = function( device_data, callback ) {
+    // run when a device has been added by the user (as of v0.8.33)
+		Homey.log("Marantz app - device added: " + JSON.stringify(device_data));
+		// update devices data array
+    initDevice( device_data );
+		Homey.log('Marantz app - add done. devices =' + JSON.stringify(devices));
+		callback( null, true );
+}
+
+module.exports.renamed = function( device_data, new_name ) {
+    // run when the user has renamed the device in Homey.
+    // It is recommended to synchronize a device's name, so the user is not confused
+    // when it uses another remote to control that device (e.g. the manufacturer's app).
+		Homey.log("Marantz app - device renamed: " + JSON.stringify(device_data) + " new name: " + new_name);
+		// update the devices array we keep
+		devices[device_data.id].data.name = new_name;
+}
+
+module.exports.deleted = function( device_data ) {
+    // run when the user has deleted the device from Homey
+		Homey.log("Marantz app - device deleted: " + JSON.stringify(device_data));
+		// remove from the devices array we keep
+    delete devices[ device_data.id ];
+}
 
 // handling settings (wrench icon in devices)
 module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback ) {
@@ -247,8 +267,8 @@ module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj,
       changedKeysArr.forEach(function (key) {
 					switch (key) {
 						case 'settingIPAddress':
-							newIP = newSettingsObj.settingIPAddress;
-							Homey.log ('Marantz app - IP address changed to ' + newIP);
+							Homey.log ('Marantz app - IP address changed to ' + newSettingsObj.settingIPAddress);
+							// FIXME: check if IP is valid, otherwise return callback with an error
 							break;
 					}
       })
@@ -266,14 +286,14 @@ module.exports.capabilities = {
 
         get: function( device_data, callback ){
 
-					Homey.log('Getting device_status of ' + devices[device_data.id].settings.ipaddress);
+					Homey.log('Getting device_status of ' + devices[device_data.id].data.name);
 					// FIXME: should get onoff status here
 					callback (null, true);
         },
 
         set: function( device_data, turnon, callback ) {
 
-	        Homey.log('Setting device_status of ' + devices[device_data.id].settings.ipaddress + ' to ' + turnon);
+	        Homey.log('Setting device_status of ' + devices[device_data.id].data.name + ' to ' + turnon);
 
 					if (turnon) {
 
@@ -294,7 +314,7 @@ module.exports.capabilities = {
 
         get: function( device_data, callback ){
 
-			Homey.log('Getting volume of ' + devices[device_data.id].settings.ipaddress);
+			Homey.log('Getting volume of ' + devices[device_data.id].data.name);
 				// FIXME: should get actual volume setting
 						var volume = 1;
 	         	callback (null, volume);
@@ -303,7 +323,7 @@ module.exports.capabilities = {
 
         set: function( device_data, volume, callback ) {
 
-	        Homey.log('Setting volume of ' + devices[device_data.id].settings.ipaddress + ' to ' + volume);
+	        Homey.log('Setting volume of ' + devices[device_data.id].data.name + ' to ' + volume);
 					// FIXME: should send command to actually set volume here
 					callback (null, true);
 
@@ -314,7 +334,7 @@ module.exports.capabilities = {
 
 				set: function( device_data, callback ) {
 
-					Homey.log('Turning up volume of ' + devices[device_data.id].settings.ipaddress);
+					Homey.log('Turning up volume of ' + devices[device_data.id].data.name);
 					// FIXME: should send command to actually set volume here
 					callback (null, true);
 
@@ -325,7 +345,7 @@ module.exports.capabilities = {
 
 				set: function( device_data, callback ) {
 
-					Homey.log('Turning down volume of ' + devices[device_data.id].settings.ipaddress);
+					Homey.log('Turning down volume of ' + devices[device_data.id].data.name);
 					// FIXME: should send command to actually set volume here
 					callback (null, true);
 
@@ -336,14 +356,14 @@ module.exports.capabilities = {
 
         get: function( device_data, callback ){
 
-					Homey.log('Getting mute status of ' + devices[device_data.id].settings.ipaddress);
+					Homey.log('Getting mute status of ' + devices[device_data.id].data.name);
 					// FIXME: should get mute status here
 					callback (null, true);
         },
 
         set: function( device_data, muteon, callback ) {
 
-	        Homey.log('Setting mute status of ' + devices[device_data.id].settings.ipaddress + ' to ' + muteon);
+	        Homey.log('Setting mute status of ' + devices[device_data.id].data.name + ' to ' + muteon);
 
 					if (muteon) {
 
@@ -531,7 +551,6 @@ function setVolume ( device, zone, targetVolume ) {
 
 function sendCommandToDevice ( device, command ) {
 	console.log ( "Marantz app - sending "+command+"\n to device "+device.id );
-//	tempIP = device.ipaddress;
 	module.exports.getSettings (device, function(err, settings){
 		console.log ( "Marantz app - got settings "+JSON.stringify(settings) );
 		tempIP = settings.settingIPAddress;
@@ -561,4 +580,11 @@ function searchForInputsByValue ( value ) {
 		}
 	}
 	return tempItems;
+}
+
+// a helper method to add a device to the devices list
+function initDevice( device_data ) {
+    devices[ device_data.id ] = {};
+    devices[ device_data.id ].state = { onoff: true };
+    devices[ device_data.id ].data = device_data;
 }
