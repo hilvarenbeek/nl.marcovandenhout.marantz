@@ -9,9 +9,9 @@ In its current state, the app requires that you enter the amplifier's IP address
 # Changelog
 
 **Version 0.0.7:**
-CURRENTLY IN DEVELOPMENT (i.e. broken as is!)
+CURRENTLY IN DEVELOPMENT
 - Rewrite according to updated developers documentation at Athom
-- Changed device class to speaker
+- Added capability to turn the amplifier on or off (shows on device cards)
 
 **Version 0.0.6:**
 - Made the IP address a setting, so you can change it from the Devices tab using the wrench icon (mouseover)
