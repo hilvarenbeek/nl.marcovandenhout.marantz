@@ -3,12 +3,10 @@
 Homey.setTitle( __('pair.start.title') );
 
 Homey.on('error', function( errortype, callback ){
-
 	if (errortype == 'error') {
 		Homey.alert(__('pair.start.error'), 'error');
 		Homey.done();
-	}
-
+	};
 	if (errortype == 'nosettings') {
 		Homey.alert(__('pair.start.nosettings'), 'error');
 		Homey.done();
@@ -16,9 +14,7 @@ Homey.on('error', function( errortype, callback ){
 })
 
 Homey.on('continue', function( success, callback ){
-
-		Homey.showView('list_devices');
-
+		Homey.showView('list_amplifiers');
 })
 
 function saveSettings () {
@@ -29,6 +25,7 @@ function saveSettings () {
 
 	// If required values are filled in
 	// FIXME: should check if this is a real IPv4 address
+
 	if (inputIPAddress != '') {
 
 		// Build data array
@@ -44,6 +41,7 @@ function saveSettings () {
 
 		// Give error, required values
 		Homey.alert(__('pair.start.required'), 'error');
+		// Homey.done() closes the pairing window
 		Homey.done();
 
 	}

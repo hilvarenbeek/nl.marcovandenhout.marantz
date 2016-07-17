@@ -3,7 +3,7 @@
     "name": {
         "en": "Marantz"
     },
-    "version": "0.0.6",
+    "version": "0.0.7",
     "compatibility": "0.x || 1.x",
     "author": {
         "name": "Marco van den Hout",
@@ -15,8 +15,8 @@
     },
     "category": "appliances",
     "description": {
-    "en": "Marantz IP control app for Homey",
-    "nl": "Dit is een Marantz IP aansturing app voor Homey"
+      "en": "Marantz IP control app for Homey",
+      "nl": "Dit is een Marantz IP aansturing app voor Homey"
     },
     "dependencies": {
     		"net": "*"
@@ -33,20 +33,28 @@
               "small": "drivers/amplifier/assets/images/small.jpg"
           },
           "class": "other",
-          "capabilities": [ "" ],
+          "capabilities": [ "onoff" ],
+          "mobile": {
+	           "components": [
+	              {
+		                "id": "icon",
+		                "capabilities": ["onoff"]
+		            }
+		         ]
+          },
           "pair": [
             {
               "id": "start"
             },
             {
-              "id": "list_devices",
+              "id": "list_amplifiers",
               "template": "list_devices",
               "navigation": {
-                  "next": "add_amplifier"
+                  "next": "add_amplifiers"
               }
             },
             {
-              "id": "add_amplifier",
+              "id": "add_amplifiers",
               "template": "add_devices"
             }
           ],
@@ -54,14 +62,16 @@
             {
               "type": "group",
                       "label": {
-                          "en": "General settings"
+                          "en": "General settings",
+                          "nl": "Algemene instellingen"
                       },
                       "children": [
                           {
                               "id": "settingIPAddress",
                               "type": "text",
                               "label": {
-                                  "en": "IP address"
+                                  "en": "IP address",
+                                  "nl": "IP adres"
                               },
                               "value": "0.0.0.0"
                           }
@@ -85,7 +95,8 @@
                 "placeholder": {
                   "en": "Select amplifier",
                   "nl": "Selecteer versterker"
-                }
+                },
+                "filter": "driver_id=amplifier"
               },
               {
                 "name": "zone",
@@ -116,7 +127,8 @@
                 "placeholder": {
                   "en": "Select amplifier",
                   "nl": "Selecteer versterker"
-                }
+                },
+                "filter": "driver_id=amplifier"
               },
               {
                 "name": "zone",
@@ -155,7 +167,8 @@
                 "placeholder": {
                   "en": "Select amplifier",
                   "nl": "Selecteer versterker"
-                }
+                },
+                "filter": "driver_id=amplifier"
               },
               {
                 "name": "zone",
@@ -182,7 +195,8 @@
                 "placeholder": {
                   "en": "Select amplifier",
                   "nl": "Selecteer versterker"
-                }
+                },
+                "filter": "driver_id=amplifier"
               },
               {
                 "name": "zone",
@@ -209,7 +223,8 @@
                 "placeholder": {
                   "en": "Select amplifier",
                   "nl": "Selecteer versterker"
-                }
+                },
+                "filter": "driver_id=amplifier"
               },
               {
                 "name": "zone",
@@ -236,7 +251,8 @@
                 "placeholder": {
                   "en": "Select amplifier",
                   "nl": "Selecteer versterker"
-                }
+                },
+                "filter": "driver_id=amplifier"
               },
               {
                 "name": "zone",
@@ -257,6 +273,30 @@
                    "en": "Target volume",
                    "nl": "Gewenst volume"
                 }
+              }
+            ]
+        },
+        {
+            "id": "customCommand",
+            "title": {
+                "en": "Send raw command"
+            },
+            "args": [
+              {
+                "name": "command",
+                "type": "text",
+                "placeholder": {
+                  "en": "command"
+                }
+              },
+              {
+                "name": "device",
+                "type": "device",
+                "placeholder": {
+                  "en": "Select amplifier",
+                  "nl": "Selecteer versterker"
+                },
+                "filter": "driver_id=amplifier"
               }
             ]
         }

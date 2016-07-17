@@ -1,6 +1,20 @@
+"use strict";
+
+// We need network functions.
 var net = require('net');
+// Temporarily store the device's IP address and name. For later use, it gets added to the device's settings
 var tempIP = '';
+var tempDeviceName = '';
+// Variable to hold responses from the AVR
+var receivedData = "";
+// The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
 var telnetPort = 23;
+// a list of devices, with their 'id' as key
+// it is generally advisable to keep a list of
+// paired and active devices in your driver's memory.
+var devices = {};
+// All known inputs for supported Denon/Marantz AV receivers and a more friendly name to use.
+// If you find your favorite input missing, please file a bug on the GitHub repository.
 var allPossibleInputs = [
 		{	inputName: "PHONO",
 	 		friendlyName: "Phono"
@@ -145,51 +159,83 @@ var allPossibleInputs = [
 		}
 ];
 
-module.exports.pair = function( socket ) {
-	// socket is a direct channel to the front-end
+// init gets run at the time the app is loaded. We get the already added devices then need to run the callback when done.
+module.exports.init = function( devices_data, callback ) {
+	devices_data.forEach(function(device_data){
+		Homey.log('Marantz app - init device: ' + JSON.stringify(device_data));
+	  initDevice( device_data );
+	})
+	//tell Homey we're happy to go
+	  callback();
+}
 
-	// this method is run when Homey.emit('list_devices') is run on the front-end
-	// which happens when you use the template `list_devices`
+// start of pairing functions
+module.exports.pair = function( socket ) {
+// socket is a direct channel to the front-end
+
+// this method is run when Homey.emit('list_devices') is run on the front-end
+// which happens when you use the template `list_devices`
 	socket.on('list_devices', function( data, callback ) {
 
-	console.log( "Marantz app - list_devices tempIP is", tempIP );
+		Homey.log( "Marantz app - list_devices data: " + JSON.stringify(data));
+// tempIP and tempDeviceName we got from when get_devices was run (hopefully?)
 
-		var devices = [{
+		var newDevices = [{
 			data: {
-				id				: tempIP,
-				ipaddress : tempIP
+				id				: tempIP
 			},
 			name: tempDeviceName,
 			settings: { "settingIPAddress": tempIP } // initial settings
 		}];
 
-		callback( null, devices );
-
+		callback( null, newDevices );
 	});
 
-// this is called when the user presses save settings button in start.html
 
+// this is called when the user presses save settings button in start.html
 	socket.on('get_devices', function( data, callback ) {
 
 		// Set passed pair settings in variables
 		tempIP = data.ipaddress;
 		tempDeviceName = data.deviceName;
-		console.log ( "Marantz app - got get_devices from front-end, tempIP =", tempIP );
-
-		// FIXME: should check if IP leads to an actual Marantz device
-
-		// assume IP is OK and continue
+		Homey.log ( "Marantz app - got get_devices from front-end, tempIP =", tempIP, " tempDeviceName = ", tempDeviceName );
+// FIXME: should check if IP leads to an actual Marantz device
+// assume IP is OK and continue, which will cause the front-end to run list_amplifiers which is the template list_devices
 		socket.emit ( 'continue', null );
-
 	});
 
-	socket.on('disconnect', function(){
-			console.log("Marantz app - User aborted pairing, or pairing is finished");
-	})
+		socket.on('disconnect', function() {
+			console.log("Marantz app - Pairing is finished (done or aborted)");
+	  })
+}
+// end pair
+
+module.exports.added = function( device_data, callback ) {
+    // run when a device has been added by the user (as of v0.8.33)
+		Homey.log("Marantz app - device added: " + JSON.stringify(device_data));
+		// update devices data array
+    initDevice( device_data );
+		Homey.log('Marantz app - add done. devices =' + JSON.stringify(devices));
+		callback( null, true );
+}
+
+module.exports.renamed = function( device_data, new_name ) {
+    // run when the user has renamed the device in Homey.
+    // It is recommended to synchronize a device's name, so the user is not confused
+    // when it uses another remote to control that device (e.g. the manufacturer's app).
+		Homey.log("Marantz app - device renamed: " + JSON.stringify(device_data) + " new name: " + new_name);
+		// update the devices array we keep
+		devices[device_data.id].data.name = new_name;
+}
+
+module.exports.deleted = function( device_data ) {
+    // run when the user has deleted the device from Homey
+		Homey.log("Marantz app - device deleted: " + JSON.stringify(device_data));
+		// remove from the devices array we keep
+    delete devices[ device_data.id ];
 }
 
 // handling settings (wrench icon in devices)
-
 module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback ) {
     // run when the user has changed the device's settings in Homey.
     // changedKeysArr contains an array of keys that have been changed, for your convenience :)
@@ -205,8 +251,8 @@ module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj,
       changedKeysArr.forEach(function (key) {
 					switch (key) {
 						case 'settingIPAddress':
-							newIP = newSettingsObj.settingIPAddress;
-							Homey.log ('Marantz app - IP address changed to ' + newIP);
+							Homey.log ('Marantz app - IP address changed to ' + newSettingsObj.settingIPAddress);
+							// FIXME: check if IP is valid, otherwise return callback with an error
 							break;
 					}
       })
@@ -217,7 +263,50 @@ module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj,
 
 }
 
-// flow action handlers
+// capabilities
+
+module.exports.capabilities = {
+    onoff: {
+
+        get: function( device_data, callbackCapability ){
+
+					Homey.log("Marantz app - getting device on/off status of " + device_data.id);
+					var command = 'PW?\r';
+					sendCommandToDevice ( device_data, command, function(receivedData) {
+						Homey.log("Marantz app - got callback, receivedData: " + receivedData);
+// if the response contained "PWON", the AVR was on. Else it was probably in standby.
+						if (receivedData.indexOf("PWON") >= 0) {
+							Homey.log("Marantz app - telling capability power is on");
+							callbackCapability (null, true);
+						}	else {
+							Homey.log("Marantz app - telling capability power is off");
+							callbackCapability (null, false);
+						}
+					} );
+        },
+
+        set: function( device_data, turnon, callbackCapability ) {
+
+	        Homey.log('Marantz app - Setting device_status of ' + device_data.id + ' to ' + turnon);
+
+					if (turnon) {
+						var command = 'PWON\r';
+						sendCommandToDevice ( device_data, command );
+						callbackCapability (null, true);
+
+					} else {
+						var command = 'PWSTANDBY\r';
+						sendCommandToDevice ( device_data, command );
+						callbackCapability (null, true);
+
+					}
+        }
+    }
+}
+
+// end capabilities
+
+// start flow action handlers
 
 Homey.manager('flow').on('action.powerOn', function( callback, args ){
 	var device = args.device;
@@ -266,6 +355,13 @@ Homey.manager('flow').on('action.setVolume', function( callback, args ){
 	var zone = args.zone;
 	var targetVolume = args.volume;
 	setVolume ( device, zone, targetVolume );
+  callback( null, true ); // we've fired successfully
+});
+
+Homey.manager('flow').on('action.customCommand', function( callback, args ){
+	var device = args.device;
+	var customCommand = args.command+'\r';
+	sendCommandToDevice ( device, customCommand );
   callback( null, true ); // we've fired successfully
 });
 
@@ -382,25 +478,44 @@ function setVolume ( device, zone, targetVolume ) {
 
 //
 
-function sendCommandToDevice ( device, command ) {
-	console.log ( "Marantz app - sending "+command+"\n to device "+device.id );
-//	tempIP = device.ipaddress;
+function sendCommandToDevice ( device, command, callbackCommand ) {
 	module.exports.getSettings (device, function(err, settings){
-		console.log ( "Marantz app - got settings "+JSON.stringify(settings) );
+		Homey.log ( "Marantz app - got settings "+JSON.stringify(settings) );
 		tempIP = settings.settingIPAddress;
-		sendCommand ( tempIP, command );
+		sendCommand ( tempIP, command, callbackCommand );
 	});
 }
 
-function sendCommand ( hostIP, command ) {
-	console.log ( "Marantz app - sending "+command+"\n to "+hostIP );
+function sendCommand ( hostIP, command, callbackCommand ) {
+	// clear variable that holds data received from the AVR
+	receivedData = "";
+	// for logging strip last char which will be the newline \n char
+	var displayCommand=command.substring(0, command.length -1);
+	Homey.log ( "Marantz app - sending "+displayCommand+" to "+hostIP );
 	var client = new net.Socket();
 	client.on('error', function(err){
 	    Homey.log("Marantz app - IP socket error: "+err.message);
 	})
 	client.connect(telnetPort, hostIP);
 	client.write(command);
-	client.end();
+
+// get a response
+	client.on('data', function(data){
+			var tempData = data.toString().replace("\r", ";");
+			Homey.log("Marantz app - got: " + tempData);
+			receivedData += tempData;
+	})
+
+// after a delay, close connection
+	setTimeout ( function() {
+		receivedData = receivedData.replace("\r", ";")
+		Homey.log("Marantz app - closing connection, receivedData: " + receivedData );
+		client.end();
+// if we got a callback function, call it with the receivedData
+		if (callbackCommand && typeof(callbackCommand) == "function") {
+			callbackCommand(receivedData);
+		}
+  }, 1000);
 }
 
 function searchForInputsByValue ( value ) {
@@ -414,4 +529,11 @@ function searchForInputsByValue ( value ) {
 		}
 	}
 	return tempItems;
+}
+
+// a helper method to add a device to the devices list
+function initDevice( device_data ) {
+    devices[ device_data.id ] = {};
+    devices[ device_data.id ].state = { onoff: true };
+    devices[ device_data.id ].data = device_data;
 }
