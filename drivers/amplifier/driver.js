@@ -358,6 +358,13 @@ Homey.manager('flow').on('action.setVolume', function( callback, args ){
   callback( null, true ); // we've fired successfully
 });
 
+Homey.manager('flow').on('action.customCommand', function( callback, args ){
+	var device = args.device;
+	var customCommand = args.command+'\r';
+	sendCommandToDevice ( device, customCommand );
+  callback( null, true ); // we've fired successfully
+});
+
 //
 
 function powerOn ( device, zone ) {

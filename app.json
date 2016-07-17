@@ -275,6 +275,30 @@
                 }
               }
             ]
+        },
+        {
+            "id": "customCommand",
+            "title": {
+                "en": "Send raw command"
+            },
+            "args": [
+              {
+                "name": "command",
+                "type": "text",
+                "placeholder": {
+                  "en": "command"
+                }
+              },
+              {
+                "name": "device",
+                "type": "device",
+                "placeholder": {
+                  "en": "Select amplifier",
+                  "nl": "Selecteer versterker"
+                },
+                "filter": "driver_id=amplifier"
+              }
+            ]
         }
       ]
     }

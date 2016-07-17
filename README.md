@@ -9,9 +9,9 @@ In its current state, the app requires that you enter the amplifier's IP address
 # Changelog
 
 **Version 0.0.7:**
-CURRENTLY IN DEVELOPMENT
 - Rewrite according to updated developers documentation at Athom
 - Added capability to turn the amplifier on or off (shows on device cards)
+- Added send custom command action, allowing for raw commands that are not covered yet (e.g. send MVUP to turn master volume one step up)
 
 **Version 0.0.6:**
 - Made the IP address a setting, so you can change it from the Devices tab using the wrench icon (mouseover)
