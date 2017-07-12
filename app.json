@@ -277,6 +277,44 @@
             ]
         },
         {
+            "id": "setVolumeStep",
+            "title": {
+                "en": "Change volume up/down",
+                "nl": "Verhoog/verlaag volume"
+            },
+            "args": [
+              {
+                "name": "device",
+                "type": "device",
+                "placeholder": {
+                  "en": "Select amplifier",
+                  "nl": "Selecteer versterker"
+                },
+                "filter": "driver_id=amplifier"
+              },
+              {
+                "name": "zone",
+                "type": "dropdown",
+                "values": [
+                  { "id": "Main Zone", "label": { "en": "Main Zone" }},
+                  { "id": "Zone2", "label": { "en": "Zone 2" }},
+                  { "id": "Zone3", "label": { "en": "Zone 3" }}
+                ],
+                "placeholder": { "en": "Zone" }
+              },
+              {
+                "name": "volume",
+                "type": "number",
+                "min": -99,
+                "max": 99,
+                "placeholder": {
+                   "en": "Step-by-step",
+                   "nl": "Stapsgewijs"
+                }
+              }
+            ]
+        },
+        {
             "id": "customCommand",
             "title": {
                 "en": "Send raw command"

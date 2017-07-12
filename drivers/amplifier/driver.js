@@ -358,6 +358,14 @@ Homey.manager('flow').on('action.setVolume', function( callback, args ){
   callback( null, true ); // we've fired successfully
 });
 
+Homey.manager('flow').on('action.setVolumeStep', function( callback, args ){
+	var device = args.device;
+	var zone = args.zone;
+	var targetVolume = args.volume;
+	setVolumeStep ( device, zone, targetVolume );
+  callback( null, true ); // we've fired successfully
+});
+
 Homey.manager('flow').on('action.customCommand', function( callback, args ){
 	var device = args.device;
 	var customCommand = args.command+'\r';
@@ -474,6 +482,41 @@ function setVolume ( device, zone, targetVolume ) {
 	}
 	var command = volumeZone+asciiVolume+'\r';
 	sendCommandToDevice ( device, command );
+}
+
+function setVolumeStep ( device, zone, targetVolume ) {
+// volume ranges from 00 to 99
+// apparently half steps are possible but not used here, eg 805 is 80.5
+// according to Marantz protocol some models have 99 as --, some have 00 as --
+var asciiVolume = null;
+if(targetVolume > 0) {
+	asciiVolume = 'UP';
+}
+if(targetVolume < 0) {
+	asciiVolume = 'DOWN';
+}
+	if(asciiVolume !== null) {
+		// supported zones: "Main Zone" (default), "Zone2", "Zone3"
+		var volumeZone = 'MV';
+		switch (zone) {
+			case 'Main Zone':
+				volumeZone = 'MV';
+				break;
+			case 'Zone2':
+				volumeZone = 'Z2';
+				break;
+			case 'Zone3':
+				volumeZone = 'Z3';
+				break;
+		}
+		var command = volumeZone+asciiVolume+'\r';
+		for(var i = 0; i < Math.abs(targetVolume); i++) {
+			setTimeout(function(device, command) {
+
+				sendCommandToDevice ( device, command );
+			}, (i * 750), device, command);
+		}
+	}
 }
 
 //
