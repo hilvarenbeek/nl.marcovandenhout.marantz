@@ -8,6 +8,9 @@ In its current state, the app requires that you enter the amplifier's IP address
 
 # Changelog
 
+**Version 0.0.8:**
+- Added volume up/down action thanks to 'Kerk en IT'
+
 **Version 0.0.7:**
 - Rewrite according to updated developers documentation at Athom
 - Added capability to turn the amplifier on or off (shows on device cards)
