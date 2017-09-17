@@ -35,7 +35,7 @@ class DMDriver extends Homey.Driver {
       		console.log ( "Marantz app - get_devices data: " + JSON.stringify(data) );
           console.log ( "Marantz app - get_devices devices: " + JSON.stringify(devices) );
 
-      // FIXME: should check if IP leads to an actual Marantz device
+      // TODO: should check if IP leads to an actual Marantz device
       // assume IP is OK and continue, which will cause the front-end to run list_amplifiers which is the template list_devices
           devices = [
           {

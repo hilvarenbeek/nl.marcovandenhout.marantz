@@ -9,6 +9,8 @@ var net = require('net');
 
 // Variable to hold responses from the AVR
 var receivedData = "";
+// Variable to remember if device is turned on or off. Initially assume it is off (standby)
+var onOffState = false;
 // The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
 var telnetPort = 23;
 // All known inputs for supported Denon/Marantz AV receivers and a more friendly name to use.
@@ -165,6 +167,9 @@ class DMDevice extends Homey.Device {
         this.log('name:', this.getName());
         this.log('class:', this.getClass());
 
+				// see if device is on or in standby
+				this.getPowerState ( this.getData(), 'Whole unit' );
+
         // register a capability listener
         this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this))
     }
@@ -183,12 +188,35 @@ class DMDevice extends Homey.Device {
     onCapabilityOnoff( value, opts, callback ) {
 
         // ... set value to real device
-        this.log("we're supposed to do something now (OnOff)");
-        this.powerOff ( this.getData(), 'Whole unit');
+        this.log("Capability called: OnOff");
+				this.log("value: "+JSON.stringify(value));
+				this.log("opts: "+JSON.stringify(opts));
+				if (value) {
+					this.powerOn ( this.getData(), 'Whole unit' );
+				} else {
+					this.powerOff ( this.getData(), 'Whole unit' );
+				}
 
         // Then, emit a callback ( err, result )
         callback( null );
     }
+
+		getPowerState ( device, zone ) {
+			this.log( "Marantz app - getting device on/off status" );
+			var command = 'PW?\r';
+			this.sendCommandToDevice ( device, command, function(receivedData) {
+					console.log("Marantz app - got callback, receivedData: " + receivedData);
+	// if the response contained "PWON", the AVR was on. Else it was probably in standby.
+					if (receivedData.indexOf("PWON") >= 0) {
+						console.log("Marantz app - telling capability power is on");
+						onOffState = true;
+					}	else {
+						console.log("Marantz app - telling capability power is off");
+						onOffState = false;
+					}
+				}
+			)
+	  }
 
     powerOn ( device, zone ) {
     	// supported zones: "Whole unit" (default), "Main Zone", "Zone2"
@@ -204,7 +232,7 @@ class DMDevice extends Homey.Device {
     			command = 'Z2ON\r'
     			break;
     	}
-    	sendCommandToDevice ( device, command );
+    	this.sendCommandToDevice ( device, command );
     }
 
     powerOff ( device, zone ) {
@@ -241,7 +269,7 @@ class DMDevice extends Homey.Device {
     	this.log ( "Marantz app - sending "+displayCommand+" to "+hostIP );
     	var client = new net.Socket();
     	client.on('error', function(err){
-    	    this.log("Marantz app - IP socket error: "+err.message);
+    	    console.log("Marantz app - IP socket error: "+err.message);
     	})
     	client.connect(telnetPort, hostIP);
     	client.write(command);
@@ -249,7 +277,7 @@ class DMDevice extends Homey.Device {
     // get a response
     	client.on('data', function(data){
     			var tempData = data.toString().replace("\r", ";");
-    			this.log("Marantz app - got: " + tempData);
+    			console.log("Marantz app - got: " + tempData);
     			receivedData += tempData;
     	})
 
