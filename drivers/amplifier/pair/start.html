@@ -14,7 +14,7 @@ Homey.on('error', function( errortype, callback ){
 })
 
 Homey.on('continue', function( success, callback ){
-		Homey.showView('list_amplifiers');
+		Homey.showView('list_devices');
 })
 
 function saveSettings () {
@@ -24,7 +24,7 @@ function saveSettings () {
 	var inputDeviceName = document.getElementById( 'deviceName' ).value;
 
 	// If required values are filled in
-	// FIXME: should check if this is a real IPv4 address
+	// TODO: should check if this is a real IPv4 address
 
 	if (inputIPAddress != '') {
 
@@ -33,7 +33,6 @@ function saveSettings () {
 			ipaddress: inputIPAddress,
 			deviceName: inputDeviceName
 		};
-
 		// Continue to back-end, pass along data
 		Homey.emit( 'get_devices', data );
 
