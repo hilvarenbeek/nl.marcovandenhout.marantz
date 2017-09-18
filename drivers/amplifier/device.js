@@ -168,10 +168,29 @@ class DMDevice extends Homey.Device {
         this.log('class:', this.getClass());
 
 				// see if device is on or in standby
-				this.getPowerState ( this.getData(), 'Whole unit' );
+				this.getPowerState ( this.getData(), 'Main Zone' );
 
         // register a capability listener
         this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this))
+
+				// register flow card actions
+				new Homey.FlowCardAction('powerOn').register().registerRunListener((args, state) => {
+					this.log("Flow card action powerOn args "+JSON.stringify(args));
+					this.log(" powerOn state "+JSON.stringify(state));
+					this.powerOn(args.device, args.zone);
+
+					return Promise.resolve(true);
+				});
+
+				new Homey.FlowCardAction('powerOff').register().registerRunListener((args, state) => {
+					this.log("Flow card action powerOff args "+JSON.stringify(args));
+					this.log(" powerOff state "+JSON.stringify(state));
+					this.powerOff(args.device, args.zone);
+
+					return Promise.resolve(true);
+				});
+
+
     }
 
     // this method is called when the Device is added
@@ -192,9 +211,9 @@ class DMDevice extends Homey.Device {
 				this.log("value: "+JSON.stringify(value));
 				this.log("opts: "+JSON.stringify(opts));
 				if (value) {
-					this.powerOn ( this.getData(), 'Whole unit' );
+					this.powerOn ( this.getData(), 'Main Zone' );
 				} else {
-					this.powerOff ( this.getData(), 'Whole unit' );
+					this.powerOff ( this.getData(), 'Main Zone' );
 				}
 
         // Then, emit a callback ( err, result )

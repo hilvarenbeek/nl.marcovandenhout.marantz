@@ -7,7 +7,9 @@
       "required": "IP address is a required value.",
       "ipAddress": "IP address",
 			"deviceName": "Device name",
-      "saveSettings": "Save settings"
+      "saveSettings": "Save settings",
+			"zone2": "Zone 2",
+			"zone3": "Zone 3"
 		}
   }
 }

@@ -37,12 +37,34 @@ class DMDriver extends Homey.Driver {
 
       // TODO: should check if IP leads to an actual Marantz device
       // assume IP is OK and continue, which will cause the front-end to run list_amplifiers which is the template list_devices
+
           devices = [
           {
               data: { id : data.ipaddress },
               name: data.deviceName,
               settings: { "settingIPAddress": data.ipaddress }
           }];
+
+          if (data.zone2) {
+            devices.push(
+              {
+                  data: { id : data.ipaddress+"_Z2" },
+                  name: data.deviceName+" Zone 2",
+                  settings: { "settingIPAddress": data.ipaddress }
+              }
+            )
+          }
+
+          if (data.zone3) {
+            devices.push(
+              {
+                  data: { id : data.ipaddress+"_Z3" },
+                  name: data.deviceName+" Zone 3",
+                  settings: { "settingIPAddress": data.ipaddress }
+              }
+            )
+          }
+
       		socket.emit ( 'continue', null );
 
       	});
