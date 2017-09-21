@@ -11,7 +11,7 @@ class DMDriver extends Homey.Driver {
         {
           "data": { "id" : "initial_id" },
           "name": "initial_name",
-          "settings": { "settingIPAddress": "0.0.0.0" } // initial settings
+          "settings": { "settingIPAddress": "0.0.0.0", "settingZone": "Main Zone" } // initial settings
         }
       ];
 
@@ -42,7 +42,7 @@ class DMDriver extends Homey.Driver {
           {
               data: { id : data.ipaddress },
               name: data.deviceName,
-              settings: { "settingIPAddress": data.ipaddress }
+              settings: { "settingIPAddress": data.ipaddress, "settingZone": "Main Zone" }
           }];
 
           if (data.zone2) {
@@ -50,7 +50,7 @@ class DMDriver extends Homey.Driver {
               {
                   data: { id : data.ipaddress+"_Z2" },
                   name: data.deviceName+" Zone 2",
-                  settings: { "settingIPAddress": data.ipaddress }
+                  settings: { "settingIPAddress": data.ipaddress, "settingZone": "Zone2" }
               }
             )
           }
@@ -60,7 +60,7 @@ class DMDriver extends Homey.Driver {
               {
                   data: { id : data.ipaddress+"_Z3" },
                   name: data.deviceName+" Zone 3",
-                  settings: { "settingIPAddress": data.ipaddress }
+                  settings: { "settingIPAddress": data.ipaddress, "settingZone": "Zone3" }
               }
             )
           }

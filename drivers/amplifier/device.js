@@ -167,8 +167,10 @@ class DMDevice extends Homey.Device {
         this.log('name:', this.getName());
         this.log('class:', this.getClass());
 
+				let settings = this.getSettings();
+
 				// see if device is on or in standby
-				this.getPowerState ( this.getData(), 'Main Zone' );
+				this.getPowerState ( this.getData(), settings.settingZone );
 
         // register a capability listener
         this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this))
@@ -177,7 +179,7 @@ class DMDevice extends Homey.Device {
 				new Homey.FlowCardAction('powerOn').register().registerRunListener((args, state) => {
 					this.log("Flow card action powerOn args "+JSON.stringify(args));
 					this.log(" powerOn state "+JSON.stringify(state));
-					this.powerOn(args.device, args.zone);
+					this.powerOn(args.device);
 
 					return Promise.resolve(true);
 				});
@@ -185,7 +187,7 @@ class DMDevice extends Homey.Device {
 				new Homey.FlowCardAction('powerOff').register().registerRunListener((args, state) => {
 					this.log("Flow card action powerOff args "+JSON.stringify(args));
 					this.log(" powerOff state "+JSON.stringify(state));
-					this.powerOff(args.device, args.zone);
+					this.powerOff(args.device);
 
 					return Promise.resolve(true);
 				});
@@ -210,10 +212,11 @@ class DMDevice extends Homey.Device {
         this.log("Capability called: OnOff");
 				this.log("value: "+JSON.stringify(value));
 				this.log("opts: "+JSON.stringify(opts));
+			  let settings = this.getSettings();
 				if (value) {
-					this.powerOn ( this.getData(), 'Main Zone' );
+					this.powerOn ( this.getData(), settings.settingZone );
 				} else {
-					this.powerOff ( this.getData(), 'Main Zone' );
+					this.powerOff ( this.getData(), settings.settingZone );
 				}
 
         // Then, emit a callback ( err, result )
@@ -223,10 +226,27 @@ class DMDevice extends Homey.Device {
 		getPowerState ( device, zone ) {
 			this.log( "Marantz app - getting device on/off status" );
 			var command = 'PW?\r';
+			switch (zone) {
+				case 'Zone2':
+					command = 'Z2?\r';
+					break;
+				case 'Zone3':
+					command = 'Z3?\r'
+					break;
+			}
 			this.sendCommandToDevice ( device, command, function(receivedData) {
 					console.log("Marantz app - got callback, receivedData: " + receivedData);
 	// if the response contained "PWON", the AVR was on. Else it was probably in standby.
-					if (receivedData.indexOf("PWON") >= 0) {
+					var expectedResponse = "PWON";
+					switch (zone) {
+						case 'Zone2':
+							command = 'Z2ON';
+							break;
+						case 'Zone3':
+							command = 'Z3ON'
+							break;
+					}
+					if (receivedData.indexOf(expectedResponse) >= 0) {
 						console.log("Marantz app - telling capability power is on");
 						onOffState = true;
 					}	else {
@@ -250,7 +270,9 @@ class DMDevice extends Homey.Device {
     		case 'Zone2':
     			command = 'Z2ON\r'
     			break;
-    	}
+				case 'Zone3':
+    			command = 'Z3ON\r'
+    			break;    	}
     	this.sendCommandToDevice ( device, command );
     }
 
@@ -266,6 +288,9 @@ class DMDevice extends Homey.Device {
     			break;
     		case 'Zone2':
     			command = 'Z2OFF\r'
+    			break;
+				case 'Zone3':
+    			command = 'Z3OFF\r'
     			break;
     	}
     	this.sendCommandToDevice ( device, command );

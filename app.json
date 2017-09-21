@@ -48,20 +48,6 @@
               "nl": "Selecteer versterker"
             },
             "filter": "driver_id=amplifier"
-          },
-          {
-            "name": "zone",
-            "type": "dropdown",
-            "values": [
-              { "id": "Whole unit", "label": {
-                  "en": "Whole unit",
-                  "nl": "Gehele apparaat"
-                }
-              },
-              { "id": "Main Zone", "label": { "en": "Main Zone" }},
-              { "id": "Zone2", "label": { "en": "Zone 2" }}
-            ],
-            "placeholder": { "en": "Zone" }
           }
         ]
       },
@@ -80,20 +66,6 @@
               "nl": "Selecteer versterker"
             },
             "filter": "driver_id=amplifier"
-          },
-          {
-            "name": "zone",
-            "type": "dropdown",
-            "values": [
-              { "id": "Whole unit", "label": {
-                "en": "Whole unit",
-                "nl": "Gehele apparaat"
-                }
-              },
-              { "id": "Main Zone", "label": { "en": "Main Zone" }},
-              { "id": "Zone2", "label": { "en": "Zone 2" }}
-            ],
-            "placeholder": { "en": "Zone" }
           }
         ]
       },
@@ -120,16 +92,6 @@
               "nl": "Selecteer versterker"
             },
             "filter": "driver_id=amplifier"
-          },
-          {
-            "name": "zone",
-            "type": "dropdown",
-            "values": [
-              { "id": "Main Zone", "label": { "en": "Main Zone" }},
-              { "id": "Zone2", "label": { "en": "Zone 2" }},
-              { "id": "Zone3", "label": { "en": "Zone 3" }}
-            ],
-            "placeholder": { "en": "Zone" }
           }
         ]
       },
@@ -148,16 +110,6 @@
               "nl": "Selecteer versterker"
             },
             "filter": "driver_id=amplifier"
-          },
-          {
-            "name": "zone",
-            "type": "dropdown",
-            "values": [
-              { "id": "Main Zone", "label": { "en": "Main Zone" }},
-              { "id": "Zone2", "label": { "en": "Zone 2" }},
-              { "id": "Zone3", "label": { "en": "Zone 3" }}
-            ],
-            "placeholder": { "en": "Zone" }
           }
         ]
       },
@@ -176,16 +128,6 @@
               "nl": "Selecteer versterker"
             },
             "filter": "driver_id=amplifier"
-          },
-          {
-            "name": "zone",
-            "type": "dropdown",
-            "values": [
-              { "id": "Main Zone", "label": { "en": "Main Zone" }},
-              { "id": "Zone2", "label": { "en": "Zone 2" }},
-              { "id": "Zone3", "label": { "en": "Zone 3" }}
-            ],
-            "placeholder": { "en": "Zone" }
           }
         ]
       },
@@ -204,16 +146,6 @@
               "nl": "Selecteer versterker"
             },
             "filter": "driver_id=amplifier"
-          },
-          {
-            "name": "zone",
-            "type": "dropdown",
-            "values": [
-              { "id": "Main Zone", "label": { "en": "Main Zone" }},
-              { "id": "Zone2", "label": { "en": "Zone 2" }},
-              { "id": "Zone3", "label": { "en": "Zone 3" }}
-            ],
-            "placeholder": { "en": "Zone" }
           },
           {
             "name": "volume",
@@ -242,16 +174,6 @@
               "nl": "Selecteer versterker"
             },
             "filter": "driver_id=amplifier"
-          },
-          {
-            "name": "zone",
-            "type": "dropdown",
-            "values": [
-              { "id": "Main Zone", "label": { "en": "Main Zone" }},
-              { "id": "Zone2", "label": { "en": "Zone 2" }},
-              { "id": "Zone3", "label": { "en": "Zone 3" }}
-            ],
-            "placeholder": { "en": "Zone" }
           },
           {
             "name": "volume",
@@ -344,6 +266,15 @@
                   "nl": "IP adres"
                 },
                 "value": "0.0.0.0"
+              },
+              {
+                "id": "settingZone",
+                "type": "text",
+                "label": {
+                  "en": "Zone",
+                  "nl": "Zone"
+                },
+                "value": "Main Zone"
               }
             ]
           }
