@@ -168,9 +168,8 @@ class DMDevice extends Homey.Device {
         this.log('class:', this.getClass());
 
 				let settings = this.getSettings();
-
 				// see if device is on or in standby
-				this.getPowerState ( this.getData(), settings.settingZone );
+				this.getPowerState ( this, settings.settingZone );
 
         // register a capability listener
         this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this))
@@ -195,7 +194,7 @@ class DMDevice extends Homey.Device {
 				new Homey.FlowCardAction('mute').register().registerRunListener((args, state) => {
 					this.log("Flow card action mute args "+args);
 					this.log(" mute state "+JSON.stringify(state));
-					this.mute(args.device);
+					this.onActionMute(args.device);
 
 					return Promise.resolve(true);
 				});
@@ -203,7 +202,7 @@ class DMDevice extends Homey.Device {
 				new Homey.FlowCardAction('unMute').register().registerRunListener((args, state) => {
 					this.log("Flow card action unMute args "+args);
 					this.log(" unMute state "+JSON.stringify(state));
-					this.unMute(args.device);
+					this.onActionUnMute(args.device);
 
 					return Promise.resolve(true);
 				});
@@ -212,8 +211,7 @@ class DMDevice extends Homey.Device {
 					this.log("Flow card action setVolume args "+args);
 					this.log(" setVolume state "+JSON.stringify(state));
 					this.log(" setVolume volume "+args.volume);
-					let settings = this.getSettings();
-					this.setVolume ( args.device, settings.settingZone, args.volume );
+					this.onActionSetVolume (args.device, args.volume);
 
 					return Promise.resolve(true);
 				});
@@ -235,7 +233,7 @@ class DMDevice extends Homey.Device {
 
         // ... set value to real device
         this.log("Capability called: OnOff");
-				this.log("value: "+JSON.stringify(value));
+					this.log("value: "+JSON.stringify(value));
 				this.log("opts: "+JSON.stringify(opts));
 			  let settings = this.getSettings();
 				if (value) {
@@ -247,6 +245,25 @@ class DMDevice extends Homey.Device {
         // Then, emit a callback ( err, result )
         callback( null );
     }
+
+		onActionMute( device ) {
+			this.log("Action called: mute");
+			let settings = device.getSettings();
+			this.mute( device, settings.settingZone );
+		}
+
+		onActionUnMute( device ) {
+			this.log("Action called: unMute");
+			let settings = device.getSettings();
+			this.unMute( device, settings.settingZone );
+		}
+
+		onActionSetVolume( device, volume ) {
+			this.log("Action called: setVolume");
+			let settings = device.getSettings();
+			this.setVolume( device, settings.settingZone, volume );
+		}
+
 
 		getPowerState ( device, zone ) {
 			this.log( "Marantz app - getting device on/off status" );
@@ -375,15 +392,14 @@ class DMDevice extends Homey.Device {
 					break;
 			}
 			var command = volumeZone+asciiVolume+'\r';
-			device = this.getData();
 			this.sendCommandToDevice ( device, command );
 		}
 
     //
 
     sendCommandToDevice ( device, command, callbackCommand ) {
-    	let settings = this.getSettings();
-			let name = this.getName();
+    	let settings = device.getSettings();
+			let name = device.getName();
     	this.log ( "Marantz app "+name+" - got settings "+JSON.stringify(settings) );
     	var tempIP = settings.settingIPAddress;
     	this.sendCommand ( tempIP, command, callbackCommand );
