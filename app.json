@@ -47,7 +47,7 @@
               "en": "Select amplifier",
               "nl": "Selecteer versterker"
             },
-            "filter": "driver_id=amplifier"
+            "filter": "driver_id=DMamplifier"
           }
         ]
       },
@@ -65,7 +65,7 @@
               "en": "Select amplifier",
               "nl": "Selecteer versterker"
             },
-            "filter": "driver_id=amplifier"
+            "filter": "driver_id=DMamplifier"
           }
         ]
       },
@@ -91,7 +91,7 @@
               "en": "Select amplifier",
               "nl": "Selecteer versterker"
             },
-            "filter": "driver_id=amplifier"
+            "filter": "driver_id=DMamplifier"
           }
         ]
       },
@@ -109,7 +109,7 @@
               "en": "Select amplifier",
               "nl": "Selecteer versterker"
             },
-            "filter": "driver_id=amplifier"
+            "filter": "driver_id=DMamplifier"
           }
         ]
       },
@@ -127,7 +127,7 @@
               "en": "Select amplifier",
               "nl": "Selecteer versterker"
             },
-            "filter": "driver_id=amplifier"
+            "filter": "driver_id=DMamplifier"
           }
         ]
       },
@@ -145,7 +145,7 @@
               "en": "Select amplifier",
               "nl": "Selecteer versterker"
             },
-            "filter": "driver_id=amplifier"
+            "filter": "driver_id=DMamplifier"
           },
           {
             "name": "volume",
@@ -173,7 +173,7 @@
               "en": "Select amplifier",
               "nl": "Selecteer versterker"
             },
-            "filter": "driver_id=amplifier"
+            "filter": "driver_id=DMamplifier"
           },
           {
             "name": "volume",
@@ -207,7 +207,7 @@
               "en": "Select amplifier",
               "nl": "Selecteer versterker"
             },
-            "filter": "driver_id=amplifier"
+            "filter": "driver_id=DMamplifier"
           }
         ]
       }
@@ -215,7 +215,7 @@
     },
     "drivers": [
       {
-        "id": "amplifier",
+        "id": "DMamplifier",
         "name": {
           "en": "Marantz amplifier",
           "nl": "Marantz versterker"

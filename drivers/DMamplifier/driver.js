@@ -52,7 +52,7 @@ class DMDriver extends Homey.Driver {
                   name: data.deviceName+" Zone 2",
                   settings: { "settingIPAddress": data.ipaddress, "settingZone": "Zone2" }
               }
-            )
+            );
           }
 
           if (data.zone3) {
@@ -62,7 +62,7 @@ class DMDriver extends Homey.Driver {
                   name: data.deviceName+" Zone 3",
                   settings: { "settingIPAddress": data.ipaddress, "settingZone": "Zone3" }
               }
-            )
+            );
           }
 
       		socket.emit ( 'continue', null );

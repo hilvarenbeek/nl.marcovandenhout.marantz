@@ -177,7 +177,7 @@ class DMDevice extends Homey.Device {
 
 				// register flow card actions
 				new Homey.FlowCardAction('powerOn').register().registerRunListener((args, state) => {
-					this.log("Flow card action powerOn args "+JSON.stringify(args));
+					this.log("Flow card action powerOn args "+args);
 					this.log(" powerOn state "+JSON.stringify(state));
 					this.powerOn(args.device);
 
@@ -185,13 +185,38 @@ class DMDevice extends Homey.Device {
 				});
 
 				new Homey.FlowCardAction('powerOff').register().registerRunListener((args, state) => {
-					this.log("Flow card action powerOff args "+JSON.stringify(args));
+					this.log("Flow card action powerOff args "+args);
 					this.log(" powerOff state "+JSON.stringify(state));
 					this.powerOff(args.device);
 
 					return Promise.resolve(true);
 				});
 
+				new Homey.FlowCardAction('mute').register().registerRunListener((args, state) => {
+					this.log("Flow card action mute args "+args);
+					this.log(" mute state "+JSON.stringify(state));
+					this.mute(args.device);
+
+					return Promise.resolve(true);
+				});
+
+				new Homey.FlowCardAction('unMute').register().registerRunListener((args, state) => {
+					this.log("Flow card action unMute args "+args);
+					this.log(" unMute state "+JSON.stringify(state));
+					this.unMute(args.device);
+
+					return Promise.resolve(true);
+				});
+
+				new Homey.FlowCardAction('setVolume').register().registerRunListener((args, state) => {
+					this.log("Flow card action setVolume args "+args);
+					this.log(" setVolume state "+JSON.stringify(state));
+					this.log(" setVolume volume "+args.volume);
+					let settings = this.getSettings();
+					this.setVolume ( args.device, settings.settingZone, args.volume );
+
+					return Promise.resolve(true);
+				});
 
     }
 
@@ -296,11 +321,70 @@ class DMDevice extends Homey.Device {
     	this.sendCommandToDevice ( device, command );
     }
 
+		mute ( device, zone ) {
+			// supported zones: "Main Zone" (default), "Zone2", "Zone3"
+			var command = 'MUON\r';
+			switch (zone) {
+				case 'Main Zone':
+					command = 'MUON\r';
+					break;
+				case 'Zone2':
+					command = 'Z2MUON\r';
+					break;
+				case 'Zone3':
+					command = 'Z3MUON\r'
+					break;
+			}
+			this.sendCommandToDevice ( device, command );
+		}
+
+		unMute ( device, zone ) {
+			// supported zones: "Main Zone" (default), "Zone2", "Zone3"
+			var command = 'MUOFF\r';
+			switch (zone) {
+				case 'Main Zone':
+					command = 'MUOFF\r';
+					break;
+				case 'Zone2':
+					command = 'Z2MUOFF\r';
+					break;
+				case 'Zone3':
+					command = 'Z3MUOFF\r'
+					break;
+			}
+			this.sendCommandToDevice ( device, command );
+		}
+
+		setVolume ( device, zone, targetVolume ) {
+		// volume ranges from 00 to 99
+		// apparently half steps are possible but not used here, eg 805 is 80.5
+		// according to Marantz protocol some models have 99 as --, some have 00 as --
+			var asciiVolume = "0"+targetVolume.toString();
+			var asciiVolume = asciiVolume.slice(-2);
+		// supported zones: "Main Zone" (default), "Zone2", "Zone3"
+			var volumeZone = '--';
+			switch (zone) {
+				case 'Main Zone':
+					volumeZone = 'MV';
+					break;
+				case 'Zone2':
+					volumeZone = 'Z2';
+					break;
+				case 'Zone3':
+					volumeZone = 'Z3';
+					break;
+			}
+			var command = volumeZone+asciiVolume+'\r';
+			device = this.getData();
+			this.sendCommandToDevice ( device, command );
+		}
+
     //
 
     sendCommandToDevice ( device, command, callbackCommand ) {
     	let settings = this.getSettings();
-    	this.log ( "Marantz app - got settings "+JSON.stringify(settings) );
+			let name = this.getName();
+    	this.log ( "Marantz app "+name+" - got settings "+JSON.stringify(settings) );
     	var tempIP = settings.settingIPAddress;
     	this.sendCommand ( tempIP, command, callbackCommand );
     }

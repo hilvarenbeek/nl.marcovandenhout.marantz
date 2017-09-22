@@ -53,50 +53,9 @@ module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj,
 
 }
 
-// capabilities
 
-module.exports.capabilities = {
-    onoff: {
-
-        get: function( device_data, callbackCapability ){
-
-
-        set: function( device_data, turnon, callbackCapability ) {
-
-	        Homey.log('Marantz app - Setting device_status of ' + device_data.id + ' to ' + turnon);
-
-					if (turnon) {
-						var command = 'PWON\r';
-						sendCommandToDevice ( device_data, command );
-						callbackCapability (null, true);
-
-					} else {
-						var command = 'PWSTANDBY\r';
-						sendCommandToDevice ( device_data, command );
-						callbackCapability (null, true);
-
-					}
-        }
-    }
-}
-
-// end capabilities
 
 // start flow action handlers
-
-Homey.manager('flow').on('action.powerOn', function( callback, args ){
-	var device = args.device;
-	var zone = args.zone;
-	powerOn ( device, zone );
-  callback( null, true ); // we've fired successfully
-});
-
-Homey.manager('flow').on('action.powerOff', function( callback, args ){
-	var device = args.device;
-	var zone = args.zone;
-	powerOff ( device, zone );
-  callback( null, true ); // we've fired successfully
-});
 
 Homey.manager('flow').on('action.changeInput', function( callback, args ){
 	var input = args.input.inputName;
@@ -110,28 +69,6 @@ Homey.manager('flow').on('action.changeInput.input.autocomplete', function( call
 	var inputSearchString = value.query;
 	var items = searchForInputsByValue( inputSearchString );
 	callback( null, items );
-});
-
-Homey.manager('flow').on('action.mute', function( callback, args ){
-	var device = args.device;
-	var zone = args.zone;
-	mute ( device, zone );
-  callback( null, true ); // we've fired successfully
-});
-
-Homey.manager('flow').on('action.unMute', function( callback, args ){
-	var device = args.device;
-	var zone = args.zone;
-	unMute ( device, zone );
-  callback( null, true ); // we've fired successfully
-});
-
-Homey.manager('flow').on('action.setVolume', function( callback, args ){
-	var device = args.device;
-	var zone = args.zone;
-	var targetVolume = args.volume;
-	setVolume ( device, zone, targetVolume );
-  callback( null, true ); // we've fired successfully
 });
 
 Homey.manager('flow').on('action.setVolumeStep', function( callback, args ){
@@ -169,62 +106,9 @@ function changeInputSource ( device, zone, input ) {
 		sendCommandToDevice ( device, command );
 }
 
-function mute ( device, zone ) {
-	// supported zones: "Main Zone" (default), "Zone2", "Zone3"
-	var command = 'MUON\r';
-	switch (zone) {
-		case 'Main Zone':
-			command = 'MUON\r';
-			break;
-		case 'Zone2':
-			command = 'Z2MUON\r';
-			break;
-		case 'Zone3':
-			command = 'Z3MUON\r'
-			break;
-	}
-	sendCommandToDevice ( device, command );
-}
 
-function unMute ( device, zone ) {
-	// supported zones: "Main Zone" (default), "Zone2", "Zone3"
-	var command = 'MUOFF\r';
-	switch (zone) {
-		case 'Main Zone':
-			command = 'MUOFF\r';
-			break;
-		case 'Zone2':
-			command = 'Z2MUOFF\r';
-			break;
-		case 'Zone3':
-			command = 'Z3MUOFF\r'
-			break;
-	}
-	sendCommandToDevice ( device, command );
-}
 
-function setVolume ( device, zone, targetVolume ) {
-// volume ranges from 00 to 99
-// apparently half steps are possible but not used here, eg 805 is 80.5
-// according to Marantz protocol some models have 99 as --, some have 00 as --
-	var asciiVolume = "0"+targetVolume.toString();
-	var asciiVolume = asciiVolume.slice(-2);
-// supported zones: "Main Zone" (default), "Zone2", "Zone3"
-	var volumeZone = 'MV';
-	switch (zone) {
-		case 'Main Zone':
-			volumeZone = 'MV';
-			break;
-		case 'Zone2':
-			volumeZone = 'Z2';
-			break;
-		case 'Zone3':
-			volumeZone = 'Z3';
-			break;
-	}
-	var command = volumeZone+asciiVolume+'\r';
-	sendCommandToDevice ( device, command );
-}
+
 
 function setVolumeStep ( device, zone, targetVolume ) {
 // volume ranges from 00 to 99
