@@ -176,13 +176,13 @@
             "filter": "driver_id=DMamplifier"
           },
           {
-            "name": "volume",
+            "name": "volumeChange",
             "type": "number",
             "min": -99,
             "max": 99,
             "placeholder": {
-              "en": "Step-by-step",
-              "nl": "Stapsgewijs"
+              "en": "Number of steps",
+              "nl": "Aantal stappen"
             }
           }
         ]

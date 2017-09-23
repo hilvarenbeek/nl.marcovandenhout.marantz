@@ -216,7 +216,40 @@ class DMDevice extends Homey.Device {
 					return Promise.resolve(true);
 				});
 
-    }
+				new Homey.FlowCardAction('setVolumeStep').register().registerRunListener((args, state) => {
+					this.log("Flow card action setVolumeStep args "+args);
+					this.log(" setVolumeStep state "+JSON.stringify(state));
+					this.log(" setVolumeStep volumeChange "+args.volumeChange);
+					this.onActionSetVolumeStep (args.device, args.volumeChange);
+
+					return Promise.resolve(true);
+				});
+
+				new Homey.FlowCardAction('changeInput').register().registerRunListener((args, state) => {
+					this.log("Flow card action changeInput args "+args);
+					this.log(" changeInput state "+JSON.stringify(state));
+					this.log(" changeInput input "+args.input);
+					this.onActionChangeInput (args.device, args.input);
+
+					return Promise.resolve(true);
+				})
+
+				//		Homey.manager('flow').on('action.changeInput.input.autocomplete', function( callback, value ) {
+				//			var inputSearchString = value.query;
+				//			var items = searchForInputsByValue( inputSearchString );
+				//			callback( null, items );
+				//		});
+
+				new Homey.FlowCardAction('customCommand').register().registerRunListener((args, state) => {
+					this.log("Flow card action customCommand args "+args);
+					this.log(" customCommand state "+JSON.stringify(state));
+					this.log(" customCommand command "+args.command);
+					this.onActionCustomCommand (args.device, args.command);
+
+					return Promise.resolve(true);
+				});
+
+    } // end onInit
 
     // this method is called when the Device is added
     onAdded() {
@@ -233,13 +266,13 @@ class DMDevice extends Homey.Device {
 
         // ... set value to real device
         this.log("Capability called: OnOff");
-					this.log("value: "+JSON.stringify(value));
+				this.log("value: "+JSON.stringify(value));
 				this.log("opts: "+JSON.stringify(opts));
 			  let settings = this.getSettings();
 				if (value) {
-					this.powerOn ( this.getData(), settings.settingZone );
+					this.powerOn ( this, settings.settingZone );
 				} else {
-					this.powerOff ( this.getData(), settings.settingZone );
+					this.powerOff ( this, settings.settingZone );
 				}
 
         // Then, emit a callback ( err, result )
@@ -264,6 +297,24 @@ class DMDevice extends Homey.Device {
 			this.setVolume( device, settings.settingZone, volume );
 		}
 
+		onActionSetVolumeStep( device, volumeChange ) {
+			this.log("Action called: setVolumeStep");
+			let settings = device.getSettings();
+			this.setVolumeStep( device, settings.settingZone, volumeChange );
+		}
+
+		onActionChangeInput( device, input ) {
+			this.log("Action called: changeInput");
+			let settings = device.getSettings();
+			this.changeInputSource ( device, setting.settingZone, input );
+		}
+
+// Note: customCommand affects all zones for a device, so you can run a customCommand from Zone2 and it will run just as if it was run from mainZone
+		onActionCustomCommand( device, command ) {
+			this.log("Action called: customCommand");
+			command += '\r';
+			this.sendCommandToDevice ( device, command );
+		}
 
 		getPowerState ( device, zone ) {
 			this.log( "Marantz app - getting device on/off status" );
@@ -395,48 +446,111 @@ class DMDevice extends Homey.Device {
 			this.sendCommandToDevice ( device, command );
 		}
 
+		setVolumeStep ( device, zone, volumeChange ) {
+		// Step up or down the volume. Argument volumeChange is the difference (e.g. +10 is 10 steps up or -5 is 5 steps down)
+			var upOrDown = null;
+			if(volumeChange > 0) {
+				upOrDown = 'UP';
+			}
+			if(volumeChange < 0) {
+				upOrDown = 'DOWN';
+			}
+			if(upOrDown !== null) {
+				// supported zones: "Main Zone" (default), "Zone2", "Zone3"
+				var volumeZone = 'MV';
+				switch (zone) {
+					case 'Main Zone':
+						volumeZone = 'MV';
+						break;
+					case 'Zone2':
+						volumeZone = 'Z2';
+						break;
+					case 'Zone3':
+						volumeZone = 'Z3';
+						break;
+				}
+				var command = volumeZone+upOrDown+'\r';
+				for(var i = 0; i < Math.abs(volumeChange); i++) {
+						setTimeout(function(device, command) {
+							device.sendCommandToDevice ( device, command );
+						}
+					, (i * 750), device, command);
+					}
+				}
+			}
+
+			changeInputSource ( device, zone, input ) {
+				// supported zones: "Main Zone" (default), "Zone2", "Zone3"
+					var sourceZone = 'SI';
+					switch (zone) {
+						case 'Main Zone':
+							sourceZone = 'SI';
+							break;
+						case 'Zone2':
+							sourceZone = 'Z2';
+							break;
+						case 'Zone3':
+							sourceZone = 'Z3';
+							break;
+					}
+					var command = sourceZone+input+'\r';
+					this.sendCommandToDevice ( device, command );
+			}
+
     //
 
-    sendCommandToDevice ( device, command, callbackCommand ) {
-    	let settings = device.getSettings();
-			let name = device.getName();
-    	this.log ( "Marantz app "+name+" - got settings "+JSON.stringify(settings) );
-    	var tempIP = settings.settingIPAddress;
-    	this.sendCommand ( tempIP, command, callbackCommand );
-    }
+	    sendCommandToDevice ( device, command, callbackCommand ) {
+	    	let settings = device.getSettings();
+				let name = device.getName();
+	    	this.log ( "Marantz app "+name+" - got settings "+JSON.stringify(settings) );
+	    	var tempIP = settings.settingIPAddress;
+	    	this.sendCommand ( tempIP, command, callbackCommand );
+	    }
 
-    sendCommand ( hostIP, command, callbackCommand ) {
-    	// clear variable that holds data received from the AVR
-    	receivedData = "";
-    	// for logging strip last char which will be the newline \n char
-    	var displayCommand=command.substring(0, command.length -1);
-    	this.log ( "Marantz app - sending "+displayCommand+" to "+hostIP );
-    	var client = new net.Socket();
-    	client.on('error', function(err){
-    	    console.log("Marantz app - IP socket error: "+err.message);
-    	})
-    	client.connect(telnetPort, hostIP);
-    	client.write(command);
+	    sendCommand ( hostIP, command, callbackCommand ) {
+	    	// clear variable that holds data received from the AVR
+	    	receivedData = "";
+	    	// for logging strip last char which will be the newline \n char
+	    	var displayCommand=command.substring(0, command.length -1);
+	    	this.log ( "Marantz app - sending "+displayCommand+" to "+hostIP );
+	    	var client = new net.Socket();
+	    	client.on('error', function(err){
+	    	    console.log("Marantz app - IP socket error: "+err.message);
+	    	})
+	    	client.connect(telnetPort, hostIP);
+	    	client.write(command);
 
-    // get a response
-    	client.on('data', function(data){
-    			var tempData = data.toString().replace("\r", ";");
-    			console.log("Marantz app - got: " + tempData);
-    			receivedData += tempData;
-    	})
+	    // get a response
+	    	client.on('data', function(data){
+	    			var tempData = data.toString().replace("\r", ";");
+	    			console.log("Marantz app - got: " + tempData);
+	    			receivedData += tempData;
+	    	})
 
-    // after a delay, close connection
-    	setTimeout ( function() {
-    		receivedData = receivedData.replace("\r", ";")
-    		console.log("Marantz app - closing connection, receivedData: " + receivedData );
-    		client.end();
-    // if we got a callback function, call it with the receivedData
-    		if (callbackCommand && typeof(callbackCommand) == "function") {
-    			callbackCommand(receivedData);
-    		}
-      }, 1000);
-    }
+	    // after a delay, close connection
+	    	setTimeout ( function() {
+	    		receivedData = receivedData.replace("\r", ";")
+	    		console.log("Marantz app - closing connection, receivedData: " + receivedData );
+	    		client.end();
+	    // if we got a callback function, call it with the receivedData
+	    		if (callbackCommand && typeof(callbackCommand) == "function") {
+	    			callbackCommand(receivedData);
+	    		}
+	      }, 1000);
+	    }
 
+			searchForInputsByValue ( value ) {
+			// for now, consider all known Marantz/Denon inputs
+				var possibleInputs = allPossibleInputs;
+				var tempItems = [];
+				for (var i = 0; i < possibleInputs.length; i++) {
+					var tempInput = possibleInputs[i];
+					if ( tempInput.friendlyName.indexOf(value) >= 0 ) {
+						tempItems.push({ icon: "", name: tempInput.friendlyName, inputName: tempInput.inputName });
+					}
+				}
+				return tempItems;
+			}
 }
 
 module.exports = DMDevice;
