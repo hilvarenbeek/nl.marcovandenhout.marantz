@@ -225,20 +225,21 @@ class DMDevice extends Homey.Device {
 					return Promise.resolve(true);
 				});
 
-				new Homey.FlowCardAction('changeInput').register().registerRunListener((args, state) => {
-					this.log("Flow card action changeInput args "+args);
-					this.log(" changeInput state "+JSON.stringify(state));
-					this.log(" changeInput input "+args.input);
-					this.onActionChangeInput (args.device, args.input);
-
-					return Promise.resolve(true);
+				let changeInputAction = new Homey.FlowCardAction('changeInput');
+				changeInputAction
+					.register()
+					.registerRunListener((args, state) => {
+						this.log("Flow card action changeInput args "+args);
+						this.log(" changeInput state "+JSON.stringify(state));
+						this.log(" changeInput input "+args.input.inputName);
+						this.onActionChangeInput (args.device, args.input.inputName);
+						return Promise.resolve(true);
+					})
+					.getArgument('input')
+					.registerAutocompleteListener(( query, args ) => {
+						var items = this.searchForInputsByValue( query );
+						return Promise.resolve( items );
 				})
-
-				//		Homey.manager('flow').on('action.changeInput.input.autocomplete', function( callback, value ) {
-				//			var inputSearchString = value.query;
-				//			var items = searchForInputsByValue( inputSearchString );
-				//			callback( null, items );
-				//		});
 
 				new Homey.FlowCardAction('customCommand').register().registerRunListener((args, state) => {
 					this.log("Flow card action customCommand args "+args);
@@ -306,7 +307,7 @@ class DMDevice extends Homey.Device {
 		onActionChangeInput( device, input ) {
 			this.log("Action called: changeInput");
 			let settings = device.getSettings();
-			this.changeInputSource ( device, setting.settingZone, input );
+			this.changeInputSource ( device, settings.settingZone, input );
 		}
 
 // Note: customCommand affects all zones for a device, so you can run a customCommand from Zone2 and it will run just as if it was run from mainZone
@@ -546,7 +547,7 @@ class DMDevice extends Homey.Device {
 				for (var i = 0; i < possibleInputs.length; i++) {
 					var tempInput = possibleInputs[i];
 					if ( tempInput.friendlyName.indexOf(value) >= 0 ) {
-						tempItems.push({ icon: "", name: tempInput.friendlyName, inputName: tempInput.inputName });
+						tempItems.push({ icon: "", name: tempInput.friendlyName, description: "", inputName: tempInput.inputName });
 					}
 				}
 				return tempItems;
