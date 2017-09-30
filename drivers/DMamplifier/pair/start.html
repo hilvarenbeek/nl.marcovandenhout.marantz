@@ -25,30 +25,31 @@ function saveSettings () {
 	var inputZone2 = document.getElementById( 'Zone2' ).checked;
 	var inputZone3 = document.getElementById( 'Zone3' ).checked;
 
-	// If required values are filled in
-	// TODO: should check if this is a real IPv4 address
-
-	if (inputIPAddress != '') {
-
-		// Build data array
-		var data = {
-			ipaddress: inputIPAddress,
-			deviceName: inputDeviceName,
-			zone2: inputZone2,
-			zone3: inputZone3
-		};
-		// Continue to back-end, pass along data
-		Homey.emit( 'get_devices', data );
-
-	} else {
-
+	// IP is required
+	if (inputIPAddress == "") {
 		// Give error, required values
 		Homey.alert(__('pair.start.required'), 'error');
-		// Homey.done() closes the pairing window
-		Homey.done();
-
+		return;
+		// Homey.done() would close the pairing window, but we want to give the user the chance to correct and resubmit
 	}
 
+	// create Regular Expression that validates for IPv4 addresses, then do the actual test on the input.
+	var Ipv4RegEx = new RegExp ('^(([01]?\\d\\d?|2[0-4]\\d|25[0-5]).){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$');
+	var IPInputOK = Ipv4RegEx.test(inputIPAddress);
+  if (!IPInputOK) {
+		Homey.alert(__('pair.start.invalidIP'), 'error');
+		return;
+	}
+
+	// Build data array
+	var data = {
+		ipaddress: inputIPAddress,
+		deviceName: inputDeviceName,
+		zone2: inputZone2,
+		zone3: inputZone3,
+	};
+	// Continue to back-end, pass along data
+	Homey.emit( 'get_devices', data );
 }
 
 </script>
@@ -70,11 +71,11 @@ function saveSettings () {
 		<table class="pairSettings">
 			<tr>
 				<td style="width:100px;" data-i18n="pair.start.ipAddress">IP</td>
-				<td><input id="ipAddress" type="text" value="192.168.1.10" placeholder=""/></td>
+				<td><input id="ipAddress" type="text" pattern="^(([01]?\\d\\d?|2[0-4]\\d|25[0-5]).){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$" placeholder="192.168.1.10" required /></td>
 			</tr>
 			<tr>
 				<td style="width:100px;" data-i18n="pair.start.deviceName">Name</td>
-				<td><input id="deviceName" type="text" value="Marantz AVR" placeholder=""/></td>
+				<td><input id="deviceName" type="text" placeholder="Amplifier" /></td>
 			</tr>
 			<tr>
 				<td style="width:100px;" data-i18n="pair.start.zone2">Name</td>

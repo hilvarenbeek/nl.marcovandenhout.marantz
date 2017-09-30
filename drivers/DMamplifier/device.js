@@ -9,6 +9,8 @@ var net = require('net');
 
 // Variable to hold responses from the AVR
 var receivedData = "";
+// client will hold the IP connection to the device
+var client = "";
 // Variable to remember if device is turned on or off. Initially assume it is off (standby)
 var onOffState = false;
 // The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
@@ -166,6 +168,7 @@ class DMDevice extends Homey.Device {
         this.log('device init');
         this.log('name:', this.getName());
         this.log('class:', this.getClass());
+				var device=this;
 
 				let settings = this.getSettings();
 				// see if device is on or in standby
@@ -282,32 +285,27 @@ class DMDevice extends Homey.Device {
 
 		onActionMute( device ) {
 			this.log("Action called: mute");
-			let settings = device.getSettings();
-			this.mute( device, settings.settingZone );
+			this.mute( device );
 		}
 
 		onActionUnMute( device ) {
 			this.log("Action called: unMute");
-			let settings = device.getSettings();
-			this.unMute( device, settings.settingZone );
+			this.unMute( device );
 		}
 
 		onActionSetVolume( device, volume ) {
 			this.log("Action called: setVolume");
-			let settings = device.getSettings();
-			this.setVolume( device, settings.settingZone, volume );
+			this.setVolume( device, volume );
 		}
 
 		onActionSetVolumeStep( device, volumeChange ) {
 			this.log("Action called: setVolumeStep");
-			let settings = device.getSettings();
-			this.setVolumeStep( device, settings.settingZone, volumeChange );
+			this.setVolumeStep( device, volumeChange );
 		}
 
 		onActionChangeInput( device, input ) {
 			this.log("Action called: changeInput");
-			let settings = device.getSettings();
-			this.changeInputSource ( device, settings.settingZone, input );
+			this.changeInputSource ( device, input );
 		}
 
 // Note: customCommand affects all zones for a device, so you can run a customCommand from Zone2 and it will run just as if it was run from mainZone
@@ -318,8 +316,8 @@ class DMDevice extends Homey.Device {
 		}
 
 		getPowerState ( device, zone ) {
-			this.log( "Marantz app - getting device on/off status" );
-			var command = 'PW?\r';
+			this.log( "Getting device on/off status, zone: " + zone );
+			var command = 'ZM?\r';
 			switch (zone) {
 				case 'Zone2':
 					command = 'Z2?\r';
@@ -328,31 +326,18 @@ class DMDevice extends Homey.Device {
 					command = 'Z3?\r'
 					break;
 			}
-			this.sendCommandToDevice ( device, command, function(receivedData) {
-					console.log("Marantz app - got callback, receivedData: " + receivedData);
-	// if the response contained "PWON", the AVR was on. Else it was probably in standby.
-					var expectedResponse = "PWON";
-					switch (zone) {
-						case 'Zone2':
-							command = 'Z2ON';
-							break;
-						case 'Zone3':
-							command = 'Z3ON'
-							break;
-					}
-					if (receivedData.indexOf(expectedResponse) >= 0) {
-						console.log("Marantz app - telling capability power is on");
-						onOffState = true;
-					}	else {
-						console.log("Marantz app - telling capability power is off");
-						onOffState = false;
-					}
-				}
-			)
-	  }
+			this.sendCommandToDevice ( device, command );
+		}
 
-    powerOn ( device, zone ) {
+		parseResponse ( device ) {
+			device.log("Parsing response, receivedData: " + receivedData);
+// done with the receivedData, clear it for the next responses
+			receivedData = "";
+		}
+
+    powerOn ( device ) {
     	// supported zones: "Whole unit" (default), "Main Zone", "Zone2"
+
     	var command = 'PWON\r';
     	switch (zone) {
     		case 'Whole unit':
@@ -370,8 +355,9 @@ class DMDevice extends Homey.Device {
     	this.sendCommandToDevice ( device, command );
     }
 
-    powerOff ( device, zone ) {
+    powerOff ( device ) {
     	// supported zones: "Whole unit" (default), "Main Zone", "Zone2"
+  		var zone = device.getSettings().settingZone;
     	var command = 'PWSTANDBY\r';
     	switch (zone) {
     		case 'Whole unit':
@@ -390,8 +376,9 @@ class DMDevice extends Homey.Device {
     	this.sendCommandToDevice ( device, command );
     }
 
-		mute ( device, zone ) {
+		mute ( device ) {
 			// supported zones: "Main Zone" (default), "Zone2", "Zone3"
+			var zone = device.getSettings().settingZone;
 			var command = 'MUON\r';
 			switch (zone) {
 				case 'Main Zone':
@@ -407,8 +394,9 @@ class DMDevice extends Homey.Device {
 			this.sendCommandToDevice ( device, command );
 		}
 
-		unMute ( device, zone ) {
+		unMute ( device ) {
 			// supported zones: "Main Zone" (default), "Zone2", "Zone3"
+			var zone = device.getSettings().settingZone;
 			var command = 'MUOFF\r';
 			switch (zone) {
 				case 'Main Zone':
@@ -424,7 +412,8 @@ class DMDevice extends Homey.Device {
 			this.sendCommandToDevice ( device, command );
 		}
 
-		setVolume ( device, zone, targetVolume ) {
+		setVolume ( device, targetVolume ) {
+			var zone = device.getSettings().settingZone;
 		// volume ranges from 00 to 99
 		// apparently half steps are possible but not used here, eg 805 is 80.5
 		// according to Marantz protocol some models have 99 as --, some have 00 as --
@@ -447,8 +436,9 @@ class DMDevice extends Homey.Device {
 			this.sendCommandToDevice ( device, command );
 		}
 
-		setVolumeStep ( device, zone, volumeChange ) {
-		// Step up or down the volume. Argument volumeChange is the difference (e.g. +10 is 10 steps up or -5 is 5 steps down)
+		setVolumeStep ( device, volumeChange ) {
+			var zone = device.getSettings().settingZone;
+			// Step up or down the volume. Argument volumeChange is the difference (e.g. +10 is 10 steps up or -5 is 5 steps down)
 			var upOrDown = null;
 			if(volumeChange > 0) {
 				upOrDown = 'UP';
@@ -480,7 +470,8 @@ class DMDevice extends Homey.Device {
 				}
 			}
 
-			changeInputSource ( device, zone, input ) {
+			changeInputSource ( device, input ) {
+					var zone = device.getSettings().settingZone;
 				// supported zones: "Main Zone" (default), "Zone2", "Zone3"
 					var sourceZone = 'SI';
 					switch (zone) {
@@ -500,45 +491,52 @@ class DMDevice extends Homey.Device {
 
     //
 
-	    sendCommandToDevice ( device, command, callbackCommand ) {
+	    sendCommandToDevice ( device, command ) {
 	    	let settings = device.getSettings();
 				let name = device.getName();
-	    	this.log ( "Marantz app "+name+" - got settings "+JSON.stringify(settings) );
+	    	this.log ( "Got settings "+JSON.stringify(settings) );
 	    	var tempIP = settings.settingIPAddress;
-	    	this.sendCommand ( tempIP, command, callbackCommand );
+				var zone = settings.settingZone;
+	    	this.sendCommand ( device, command );
 	    }
 
-	    sendCommand ( hostIP, command, callbackCommand ) {
-	    	// clear variable that holds data received from the AVR
-	    	receivedData = "";
+	    sendCommand ( device, command ) {
+				var settings = device.getSettings();
+				var hostIP = settings.settingIPAddress;
+				var zone = settings.settingZone;
 	    	// for logging strip last char which will be the newline \n char
 	    	var displayCommand=command.substring(0, command.length -1);
-	    	this.log ( "Marantz app - sending "+displayCommand+" to "+hostIP );
-	    	var client = new net.Socket();
+	    	device.log ( "Sending "+displayCommand+" to "+hostIP );
+				device.log ( "  -- client: "+typeof(client) );
+				if ((typeof(client.destroyed) != 'boolean') || (client.destroyed==true)) {
+	    		client = new net.Socket();
+					client.connect(telnetPort, hostIP);
+				}
 	    	client.on('error', function(err){
-	    	    console.log("Marantz app - IP socket error: "+err.message);
+	    	    device.log("IP socket error: "+err.message);
 	    	})
-	    	client.connect(telnetPort, hostIP);
 	    	client.write(command);
 
-	    // get a response
+	    // add handler for any response or other data coming from the device
 	    	client.on('data', function(data){
 	    			var tempData = data.toString().replace("\r", ";");
-	    			console.log("Marantz app - got: " + tempData);
 	    			receivedData += tempData;
+						device.log("Got data: " + tempData + " -- receivedData: "+ receivedData);
 	    	})
 
-	    // after a delay, close connection
-	    	setTimeout ( function() {
-	    		receivedData = receivedData.replace("\r", ";")
-	    		console.log("Marantz app - closing connection, receivedData: " + receivedData );
-	    		client.end();
-	    // if we got a callback function, call it with the receivedData
-	    		if (callbackCommand && typeof(callbackCommand) == "function") {
-	    			callbackCommand(receivedData);
-	    		}
-	      }, 1000);
+	    // wait a while for a possible response
+	    	setTimeout (this.parseResponse, 1000, device);
 	    }
+
+//			closeConnection (device, receivedData) {
+//				device.log ("Closing connection, receivedData = " + receivedData);
+//				if (typeof(client.end)==='function') {
+//					client.end();
+//				} else {
+//					device.log ("  -- client.end was not a function");
+//				}
+//				device.parseResponse();
+//			}
 
 			searchForInputsByValue ( value ) {
 			// for now, consider all known Marantz/Denon inputs

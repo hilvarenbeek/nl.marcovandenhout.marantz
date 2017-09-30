@@ -38,6 +38,20 @@ class DMDriver extends Homey.Driver {
       // TODO: should check if IP leads to an actual Marantz device
       // assume IP is OK and continue, which will cause the front-end to run list_amplifiers which is the template list_devices
 
+
+      // get MAC address from IP
+//    	Homey.ManagerArp.getMAC(inputIPAddress)
+//    		.then( result => {
+//    			let inputIdentifier = result.mac;
+//    			console.log ("got ARP: "+inputIdentifier);
+//    			inputDone();
+//    		})
+//    		.catch( err => {
+//    			let inputIdentifier = inputIPAddress;
+//    			console.log ("ARP failed: "+inputIdentifier);
+//    			inputDone();
+//    		})
+
           devices = [
           {
               data: { id : data.ipaddress },
@@ -65,13 +79,18 @@ class DMDriver extends Homey.Driver {
             );
           }
 
-      		socket.emit ( 'continue', null );
+          // ready to continue pairing
+          letsContinue(socket);
 
       	});
 
       		socket.on('disconnect', function() {
       			console.log("Marantz app - Pairing is finished (done or aborted)");        // using console.log because got error: this.log is not a function
       	  })
+
+          function letsContinue(socket) {
+            socket.emit ( 'continue', null );
+          }
     };
 }
 

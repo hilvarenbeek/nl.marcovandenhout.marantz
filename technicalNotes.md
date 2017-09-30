@@ -3,7 +3,7 @@ Classes
   DMDevice        Denon/Marantz device in device.js
 
 Settings (note: driver settings, not app settings. See app.json):
-  settingIPAddress   IP address       NOTE: not checked in pairing HTML, now checked in Settings (using pattern)
+  settingIPAddress   IP address       Since version 1.0.0 IP is checked against Ipv4 RegEx in pairing and settings.
   (not yet: model)
 
 Thoughts:
