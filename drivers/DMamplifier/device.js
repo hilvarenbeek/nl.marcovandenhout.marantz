@@ -170,9 +170,8 @@ class DMDevice extends Homey.Device {
         this.log('class:', this.getClass());
 				var device=this;
 
-				let settings = this.getSettings();
-				// see if device is on or in standby
-				this.getPowerState ( this, settings.settingZone );
+				// get initial state
+				this.getState ();
 
         // register a capability listener
         this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this))
@@ -181,7 +180,7 @@ class DMDevice extends Homey.Device {
 				new Homey.FlowCardAction('powerOn').register().registerRunListener((args, state) => {
 					this.log("Flow card action powerOn args "+args);
 					this.log(" powerOn state "+JSON.stringify(state));
-					this.powerOn(args.device);
+					this.powerOn(args.device, args.zone);
 
 					return Promise.resolve(true);
 				});
@@ -189,7 +188,7 @@ class DMDevice extends Homey.Device {
 				new Homey.FlowCardAction('powerOff').register().registerRunListener((args, state) => {
 					this.log("Flow card action powerOff args "+args);
 					this.log(" powerOff state "+JSON.stringify(state));
-					this.powerOff(args.device);
+					this.powerOff(args.device, args.zone);
 
 					return Promise.resolve(true);
 				});
@@ -197,7 +196,7 @@ class DMDevice extends Homey.Device {
 				new Homey.FlowCardAction('mute').register().registerRunListener((args, state) => {
 					this.log("Flow card action mute args "+args);
 					this.log(" mute state "+JSON.stringify(state));
-					this.onActionMute(args.device);
+					this.onActionMute(args.device, args.zone);
 
 					return Promise.resolve(true);
 				});
@@ -205,7 +204,7 @@ class DMDevice extends Homey.Device {
 				new Homey.FlowCardAction('unMute').register().registerRunListener((args, state) => {
 					this.log("Flow card action unMute args "+args);
 					this.log(" unMute state "+JSON.stringify(state));
-					this.onActionUnMute(args.device);
+					this.onActionUnMute(args.device, args.zone);
 
 					return Promise.resolve(true);
 				});
@@ -214,17 +213,15 @@ class DMDevice extends Homey.Device {
 					this.log("Flow card action setVolume args "+args);
 					this.log(" setVolume state "+JSON.stringify(state));
 					this.log(" setVolume volume "+args.volume);
-					this.onActionSetVolume (args.device, args.volume);
+					this.onActionSetVolume (args.device, args.zone, args.volume);
 
 					return Promise.resolve(true);
 				});
 
 				new Homey.FlowCardAction('setVolumeStep').register().registerRunListener((args, state) => {
-					this.log("Flow card action setVolumeStep args "+args);
-					this.log(" setVolumeStep state "+JSON.stringify(state));
+					this.log("Flow card action setVolumeStep args: "+args);
 					this.log(" setVolumeStep volumeChange "+args.volumeChange);
-					this.onActionSetVolumeStep (args.device, args.volumeChange);
-
+					this.onActionSetVolumeStep (args.device, args.zone, args.volumeChange);
 					return Promise.resolve(true);
 				});
 
@@ -235,7 +232,7 @@ class DMDevice extends Homey.Device {
 						this.log("Flow card action changeInput args "+args);
 						this.log(" changeInput state "+JSON.stringify(state));
 						this.log(" changeInput input "+args.input.inputName);
-						this.onActionChangeInput (args.device, args.input.inputName);
+						this.onActionChangeInput (args.device, args.zone, args.input.inputName);
 						return Promise.resolve(true);
 					})
 					.getArgument('input')
@@ -283,50 +280,53 @@ class DMDevice extends Homey.Device {
         callback( null );
     }
 
-		onActionMute( device ) {
+		onActionMute( device, zone ) {
 			this.log("Action called: mute");
-			this.mute( device );
+			this.mute( device, zone );
 		}
 
-		onActionUnMute( device ) {
+		onActionUnMute( device, zone ) {
 			this.log("Action called: unMute");
-			this.unMute( device );
+			this.unMute( device, zone );
 		}
 
-		onActionSetVolume( device, volume ) {
+		onActionSetVolume( device, zone, volume ) {
 			this.log("Action called: setVolume");
-			this.setVolume( device, volume );
+			this.setVolume( device, zone, volume );
 		}
 
-		onActionSetVolumeStep( device, volumeChange ) {
+		onActionSetVolumeStep( device, zone, volumeChange ) {
 			this.log("Action called: setVolumeStep");
-			this.setVolumeStep( device, volumeChange );
+			this.setVolumeStep( device, zone, volumeChange );
 		}
 
-		onActionChangeInput( device, input ) {
+		onActionChangeInput( device, zone, input ) {
 			this.log("Action called: changeInput");
-			this.changeInputSource ( device, input );
+			this.changeInputSource ( device, zone, input );
 		}
 
 // Note: customCommand affects all zones for a device, so you can run a customCommand from Zone2 and it will run just as if it was run from mainZone
 		onActionCustomCommand( device, command ) {
 			this.log("Action called: customCommand");
 			command += '\r';
-			this.sendCommandToDevice ( device, command );
+			this.sendCommand ( this, command );
 		}
 
-		getPowerState ( device, zone ) {
-			this.log( "Getting device on/off status, zone: " + zone );
+		getState () {
+			this.log( "Getting device status" );
+// main zone
 			var command = 'ZM?\r';
-			switch (zone) {
-				case 'Zone2':
-					command = 'Z2?\r';
-					break;
-				case 'Zone3':
-					command = 'Z3?\r'
-					break;
+			this.sendCommand ( this, command );
+// zone 2 if applicable
+			if (this.getSettings().settingZone2) {
+				var command = 'Z2?\r';
+				this.sendCommand ( this, command );
 			}
-			this.sendCommandToDevice ( device, command );
+// zone 3 if applicable
+			if (this.getSettings().settingZone3) {
+				var command = 'Z3?\r';
+				this.sendCommand ( this, command );
+			}
 		}
 
 		parseResponse ( device ) {
@@ -335,50 +335,60 @@ class DMDevice extends Homey.Device {
 			receivedData = "";
 		}
 
-    powerOn ( device ) {
-    	// supported zones: "Whole unit" (default), "Main Zone", "Zone2"
+		powerOn ( device, zone ) {
+			// supported zones: "Whole unit" (default), "Main Zone", "Zone2"
+			var command = 'PWON\r';
+			switch (zone) {
+				case 'Whole unit':
+					command = 'PWON\r';
+					break;
+				case 'Main Zone':
+					command = 'ZMON\r';
+					break;
+				case 'Zone2':
+					command = 'Z2ON\r'
+					break;
+			}
+			this.sendCommand ( this, command );
+		}
 
-    	var command = 'PWON\r';
-    	switch (zone) {
-    		case 'Whole unit':
-    			command = 'PWON\r';
-    			break;
-    		case 'Main Zone':
-    			command = 'ZMON\r';
-    			break;
-    		case 'Zone2':
-    			command = 'Z2ON\r'
-    			break;
-				case 'Zone3':
-    			command = 'Z3ON\r'
-    			break;    	}
-    	this.sendCommandToDevice ( device, command );
-    }
+		powerOff ( device, zone ) {
+			// supported zones: "Whole unit" (default), "Main Zone", "Zone2"
+			var command = 'PWSTANDBY\r';
+			switch (zone) {
+				case 'Whole unit':
+					command = 'PWSTANDBY\r';
+					break;
+				case 'Main Zone':
+					command = 'ZMOFF\r';
+					break;
+				case 'Zone2':
+					command = 'Z2OFF\r'
+					break;
+			}
+			this.sendCommand ( this, command );
+		}
 
-    powerOff ( device ) {
-    	// supported zones: "Whole unit" (default), "Main Zone", "Zone2"
-  		var zone = device.getSettings().settingZone;
-    	var command = 'PWSTANDBY\r';
-    	switch (zone) {
-    		case 'Whole unit':
-    			command = 'PWSTANDBY\r';
-    			break;
-    		case 'Main Zone':
-    			command = 'ZMOFF\r';
-    			break;
-    		case 'Zone2':
-    			command = 'Z2OFF\r'
-    			break;
-				case 'Zone3':
-    			command = 'Z3OFF\r'
-    			break;
-    	}
-    	this.sendCommandToDevice ( device, command );
-    }
-
-		mute ( device ) {
+		changeInputSource ( device, zone, input ) {
 			// supported zones: "Main Zone" (default), "Zone2", "Zone3"
-			var zone = device.getSettings().settingZone;
+				var sourceZone = 'SI';
+				switch (zone) {
+					case 'Main Zone':
+						sourceZone = 'SI';
+						break;
+					case 'Zone2':
+						sourceZone = 'Z2';
+						break;
+					case 'Zone3':
+						sourceZone = 'Z3';
+						break;
+				}
+				var command = sourceZone+input+'\r';
+				this.sendCommand ( this, command );
+			}
+
+		mute ( device, zone ) {
+			// supported zones: "Main Zone" (default), "Zone2", "Zone3"
 			var command = 'MUON\r';
 			switch (zone) {
 				case 'Main Zone':
@@ -391,12 +401,11 @@ class DMDevice extends Homey.Device {
 					command = 'Z3MUON\r'
 					break;
 			}
-			this.sendCommandToDevice ( device, command );
+			this.sendCommand ( this, command );
 		}
 
-		unMute ( device ) {
+		unMute ( device, zone ) {
 			// supported zones: "Main Zone" (default), "Zone2", "Zone3"
-			var zone = device.getSettings().settingZone;
 			var command = 'MUOFF\r';
 			switch (zone) {
 				case 'Main Zone':
@@ -409,18 +418,17 @@ class DMDevice extends Homey.Device {
 					command = 'Z3MUOFF\r'
 					break;
 			}
-			this.sendCommandToDevice ( device, command );
+			this.sendCommand ( this, command );
 		}
 
-		setVolume ( device, targetVolume ) {
-			var zone = device.getSettings().settingZone;
+		setVolume ( device, zone, targetVolume ) {
 		// volume ranges from 00 to 99
 		// apparently half steps are possible but not used here, eg 805 is 80.5
 		// according to Marantz protocol some models have 99 as --, some have 00 as --
 			var asciiVolume = "0"+targetVolume.toString();
 			var asciiVolume = asciiVolume.slice(-2);
 		// supported zones: "Main Zone" (default), "Zone2", "Zone3"
-			var volumeZone = '--';
+			var volumeZone = 'MV';
 			switch (zone) {
 				case 'Main Zone':
 					volumeZone = 'MV';
@@ -433,11 +441,10 @@ class DMDevice extends Homey.Device {
 					break;
 			}
 			var command = volumeZone+asciiVolume+'\r';
-			this.sendCommandToDevice ( device, command );
+			this.sendCommand ( this, command );
 		}
 
-		setVolumeStep ( device, volumeChange ) {
-			var zone = device.getSettings().settingZone;
+		setVolumeStep ( device, zone, volumeChange ) {
 			// Step up or down the volume. Argument volumeChange is the difference (e.g. +10 is 10 steps up or -5 is 5 steps down)
 			var upOrDown = null;
 			if(volumeChange > 0) {
@@ -462,16 +469,12 @@ class DMDevice extends Homey.Device {
 				}
 				var command = volumeZone+upOrDown+'\r';
 				for(var i = 0; i < Math.abs(volumeChange); i++) {
-						setTimeout(function(device, command) {
-							device.sendCommandToDevice ( device, command );
-						}
-					, (i * 750), device, command);
+						setTimeout(	this.sendCommand, (i * 750), device, command);
 					}
 				}
 			}
 
-			changeInputSource ( device, input ) {
-					var zone = device.getSettings().settingZone;
+			changeInputSource ( device, zone, input ) {
 				// supported zones: "Main Zone" (default), "Zone2", "Zone3"
 					var sourceZone = 'SI';
 					switch (zone) {
@@ -486,24 +489,14 @@ class DMDevice extends Homey.Device {
 							break;
 					}
 					var command = sourceZone+input+'\r';
-					this.sendCommandToDevice ( device, command );
-			}
+					this.sendCommand ( this, command );
+				}
 
     //
-
-	    sendCommandToDevice ( device, command ) {
-	    	let settings = device.getSettings();
-				let name = device.getName();
-	    	this.log ( "Got settings "+JSON.stringify(settings) );
-	    	var tempIP = settings.settingIPAddress;
-				var zone = settings.settingZone;
-	    	this.sendCommand ( device, command );
-	    }
 
 	    sendCommand ( device, command ) {
 				var settings = device.getSettings();
 				var hostIP = settings.settingIPAddress;
-				var zone = settings.settingZone;
 	    	// for logging strip last char which will be the newline \n char
 	    	var displayCommand=command.substring(0, command.length -1);
 	    	device.log ( "Sending "+displayCommand+" to "+hostIP );
@@ -511,21 +504,20 @@ class DMDevice extends Homey.Device {
 				if ((typeof(client.destroyed) != 'boolean') || (client.destroyed==true)) {
 	    		client = new net.Socket();
 					client.connect(telnetPort, hostIP);
+  				// add handler for any response or other data coming from the device
+		    	client.on('data', function(data){
+		    			var tempData = data.toString().replace("\r", ";");
+		    			receivedData += tempData;
+							console.log("Got data: " + tempData + " -- receivedData: "+ receivedData);
+		    	})
+					client.on('error', function(err){
+		    	    device.log("IP socket error: "+err.message);
+		    	})
 				}
-	    	client.on('error', function(err){
-	    	    device.log("IP socket error: "+err.message);
-	    	})
 	    	client.write(command);
 
-	    // add handler for any response or other data coming from the device
-	    	client.on('data', function(data){
-	    			var tempData = data.toString().replace("\r", ";");
-	    			receivedData += tempData;
-						device.log("Got data: " + tempData + " -- receivedData: "+ receivedData);
-	    	})
-
 	    // wait a while for a possible response
-	    	setTimeout (this.parseResponse, 1000, device);
+	    	setTimeout (device.parseResponse, 1000, device);
 	    }
 
 //			closeConnection (device, receivedData) {

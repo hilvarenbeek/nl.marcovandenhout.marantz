@@ -11,23 +11,9 @@ class DMDriver extends Homey.Driver {
         {
           "data": { "id" : "initial_id" },
           "name": "initial_name",
-          "settings": { "settingIPAddress": "0.0.0.0", "settingZone": "Main Zone" } // initial settings
+          "settings": { "settingIPAddress": "0.0.0.0", "settingZoneMain": "yes", "settingZone2": "yes", "settingZone3": "no" } // initial settings
         }
       ];
-
-      // this method is run when Homey.emit('list_devices') is run on the front-end
-      // which happens when you use the template `list_devices`
-      // pairing: start.html -> get_devices -> list_devices -> add_devices
-      	socket.on('list_devices', function( data, callback ) {
-
-      		console.log( "Marantz app - list_devices data: " + JSON.stringify(data));
-          console.log( "Marantz app - list_devices devices: " + JSON.stringify(devices));
-
-      // tempIP and tempDeviceName we got from when get_devices was run (hopefully?)
-
-      		callback( null, devices );
-      	});
-
 
       // this is called when the user presses save settings button in start.html
       	socket.on('get_devices', function( data, callback ) {
@@ -56,36 +42,29 @@ class DMDriver extends Homey.Driver {
           {
               data: { id : data.ipaddress },
               name: data.deviceName,
-              settings: { "settingIPAddress": data.ipaddress, "settingZone": "Main Zone" }
+              settings: { "settingIPAddress": data.ipaddress, "settingZoneMain": true, "settingZone2": data.zone2, "settingZone3": data.zone3 }
           }];
-
-          if (data.zone2) {
-            devices.push(
-              {
-                  data: { id : data.ipaddress+"_Z2" },
-                  name: data.deviceName+" Zone 2",
-                  settings: { "settingIPAddress": data.ipaddress, "settingZone": "Zone2" }
-              }
-            );
-          }
-
-          if (data.zone3) {
-            devices.push(
-              {
-                  data: { id : data.ipaddress+"_Z3" },
-                  name: data.deviceName+" Zone 3",
-                  settings: { "settingIPAddress": data.ipaddress, "settingZone": "Zone3" }
-              }
-            );
-          }
 
           // ready to continue pairing
           letsContinue(socket);
 
       	});
 
+        // this method is run when Homey.emit('list_devices') is run on the front-end
+        // which happens when you use the template `list_devices`
+        // pairing: start.html -> get_devices -> list_devices -> add_devices
+        	socket.on('list_devices', function( data, callback ) {
+
+        		console.log( "Marantz app - list_devices data: " + JSON.stringify(data));
+            console.log( "Marantz app - list_devices devices: " + JSON.stringify(devices));
+
+        		callback( null, devices );
+        	});
+
+
+        // this happens when user clicks away the pairing windows
       		socket.on('disconnect', function() {
-      			console.log("Marantz app - Pairing is finished (done or aborted)");        // using console.log because got error: this.log is not a function
+      			console.log("Marantz app - Pairing is finished (done or aborted)");        // using console.log because this.log or Homey.log is not a function
       	  })
 
           function letsContinue(socket) {
