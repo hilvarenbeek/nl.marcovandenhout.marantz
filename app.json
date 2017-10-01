@@ -51,16 +51,7 @@
             },
             {
               "name": "zone",
-              "type": "dropdown",
-              "values": [
-                { "id": "Whole unit", "label": {
-                   "en": "Whole unit",
-                   "nl": "Gehele apparaat"
-                   }
-                },
-                { "id": "Main Zone", "label": { "en": "Main Zone" }},
-                { "id": "Zone2", "label": { "en": "Zone 2" }}
-              ],
+              "type": "autocomplete",
               "placeholder": { "en": "Zone" }
             }
           ]
@@ -83,16 +74,7 @@
             },
             {
               "name": "zone",
-              "type": "dropdown",
-              "values": [
-                { "id": "Whole unit", "label": {
-                   "en": "Whole unit",
-                   "nl": "Gehele apparaat"
-                   }
-                },
-                { "id": "Main Zone", "label": { "en": "Main Zone" }},
-                { "id": "Zone2", "label": { "en": "Zone 2" }}
-              ],
+              "type": "autocomplete",
               "placeholder": { "en": "Zone" }
             }
           ]
@@ -108,8 +90,7 @@
               "name": "input",
               "type": "autocomplete",
               "placeholder": {
-                "en": "input",
-                "nl": "input"
+                "en": "Input"
               }
             },
             {
@@ -123,12 +104,7 @@
             },
             {
               "name": "zone",
-              "type": "dropdown",
-              "values": [
-                { "id": "Main Zone", "label": { "en": "Main Zone" }},
-                { "id": "Zone2", "label": { "en": "Zone 2" }},
-                { "id": "Zone3", "label": { "en": "Zone 3" }}
-              ],
+              "type": "autocomplete",
               "placeholder": { "en": "Zone" }
             }
           ]
@@ -151,12 +127,7 @@
             },
             {
               "name": "zone",
-              "type": "dropdown",
-              "values": [
-                { "id": "Main Zone", "label": { "en": "Main Zone" }},
-                { "id": "Zone2", "label": { "en": "Zone 2" }},
-                { "id": "Zone3", "label": { "en": "Zone 3" }}
-              ],
+              "type": "autocomplete",
               "placeholder": { "en": "Zone" }
             }
           ]
@@ -179,12 +150,7 @@
             },
             {
               "name": "zone",
-              "type": "dropdown",
-              "values": [
-                { "id": "Main Zone", "label": { "en": "Main Zone" }},
-                { "id": "Zone2", "label": { "en": "Zone 2" }},
-                { "id": "Zone3", "label": { "en": "Zone 3" }}
-              ],
+              "type": "autocomplete",
               "placeholder": { "en": "Zone" }
             }
           ]
@@ -207,12 +173,7 @@
             },
             {
               "name": "zone",
-              "type": "dropdown",
-              "values": [
-                { "id": "Main Zone", "label": { "en": "Main Zone" }},
-                { "id": "Zone2", "label": { "en": "Zone 2" }},
-                { "id": "Zone3", "label": { "en": "Zone 3" }}
-              ],
+              "type": "autocomplete",
               "placeholder": { "en": "Zone" }
             },
             {
@@ -245,12 +206,7 @@
             },
             {
               "name": "zone",
-              "type": "dropdown",
-              "values": [
-                { "id": "Main Zone", "label": { "en": "Main Zone" }},
-                { "id": "Zone2", "label": { "en": "Zone 2" }},
-                { "id": "Zone3", "label": { "en": "Zone 3" }}
-              ],
+              "type": "autocomplete",
               "placeholder": { "en": "Zone" }
             },
             {
@@ -303,15 +259,7 @@
           "small": "drivers/amplifier/assets/images/small.jpg"
         },
         "class": "amplifier",
-        "capabilities": [ "onoff" ],
-        "mobile": {
-          "components": [
-            {
-              "id": "icon",
-              "capabilities": [ "onoff" ]
-            }
-          ]
-        },
+        "capabilities": [ "onoff", "volume_set", "volume_mute", "volume_up", "volume_down" ],
         "pair": [
           {
             "id": "start"
