@@ -255,8 +255,8 @@
           "nl": "Marantz versterker"
         },
         "images": {
-          "large": "drivers/amplifier/assets/images/large.jpg",
-          "small": "drivers/amplifier/assets/images/small.jpg"
+          "large": "drivers/DMamplifier/assets/images/large.jpg",
+          "small": "drivers/DMamplifier/assets/images/small.jpg"
         },
         "class": "amplifier",
         "capabilities": [ "onoff", "volume_set", "volume_mute", "volume_up", "volume_down" ],
