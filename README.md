@@ -8,6 +8,11 @@ In its current state, the app requires that you enter the amplifier's IP address
 
 # Changelog
 
+**Version 1.0.0:**
+- Rewritten for SDK2 (Homey 1.5 and up)
+- Added capabilities, now a volume slider appears in mobile which sets main volume
+- Improvements include checking IP address at pairing and in settings
+
 **Version 0.0.8:**
 - Added volume up/down action thanks to 'Kerk en IT'
 
