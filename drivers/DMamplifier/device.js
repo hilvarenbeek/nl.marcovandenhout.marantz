@@ -7,14 +7,17 @@ const Homey = require('homey');
 // We need network functions.
 var net = require('net');
 
-// Variable to hold responses from the AVR
-var receivedData = "";
-// client will hold the IP connection to the device
+// keep a list of devices in memory
+var devices = [];
+
+// client holds net.Socket
 var client = "";
-// Variable to remember if device is turned on or off. Initially assume it is off (standby)
-var onOffState = false;
-// Maximum volume
+// receivedData holds unparsed data received from the client (data received over the network)
+var receivedData = "";
+// MVMax is the maximum volume number (e.g. 70)
 var MVMax = 70;
+
+
 // The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
 var telnetPort = 23;
 // All known inputs for supported Denon/Marantz AV receivers and a more friendly name to use.
@@ -168,12 +171,37 @@ class DMDevice extends Homey.Device {
     // this method is called when the Device is inited
     onInit() {
         this.log('device init');
-        this.log('name:', this.getName());
-        this.log('class:', this.getClass());
-				var device=this;
+//				console.dir ( this.getSettings() );				// for debugging
+//				console.dir ( this.getData() );						// for debugging
+        this.log( 'name: ', this.getName() );
+        this.log( 'class: ', this.getClass() );
+				let id = this.getData().id;
+				this.log( 'id: ', id );
+
+// is device with this id already added to global devices array?
+//				var alreadyAdded = false;
+//				for (var i in devices) {
+//					if (devices[i].id == id) alreadyAdded=true;
+//				}
+
+//  if not, add with default values
+//				if (!alreadyAdded) {
+//					devices.push ({	'id': id,
+//												'client': "",
+//												'receivedData': "",
+//												'MVMax': 70
+//											});
+//				}
+
+				devices[id] = {};
+				devices[id].client = "";
+				devices[id].receivedData = "";
+				devices[id].MVMax = 70;
+
+//				console.dir(devices);			// for debugging
 
 				// get initial state
-				this.getState ();
+				this.getState();
 
         // register capability listeners
         this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this));
@@ -410,6 +438,8 @@ class DMDevice extends Homey.Device {
 		}
 
 		parseResponse ( device ) {
+			let id = device.getData().id;
+			let receivedData = devices[id].receivedData;
 			device.log("Parsing response, receivedData: " + receivedData);
 			if (receivedData.indexOf("PWON") >= 0) {
 				device.setCapabilityValue("onoff", true);
@@ -425,6 +455,8 @@ class DMDevice extends Homey.Device {
 		    var maxRes = maxSlice.split(";");
 				MVMax = maxRes[0].substr(6,2);			// ignore possible third digit
 				device.log("parseResponse: found MVMAX of "+MVMax);
+				let id = device.getData().id;
+				devices[id].MVMax = MVMax;
 			}
 // Run a Regular Expression to find the first Main Volume response (if any)
 			var MVRegEx = /MV(\d){2}/;
@@ -436,7 +468,7 @@ class DMDevice extends Homey.Device {
 				device.log("parseResponse: set setVolume " + MainVolume);
 			}
 // done with the receivedData, clear it for the next responses
-			receivedData = "";
+			devices[id].receivedData = "";
 		}
 
 		powerOn ( device, zone ) {
@@ -633,20 +665,25 @@ class DMDevice extends Homey.Device {
     //
 
 	    sendCommand ( device, command ) {
-				var settings = device.getSettings();
-				var hostIP = settings.settingIPAddress;
+				let settings = device.getSettings();
+				let hostIP = settings.settingIPAddress;
+				let id = device.getData().id;
+				let client = devices[id].client;
+
 	    	// for logging strip last char which will be the newline \n char
-	    	var displayCommand=command.substring(0, command.length -1);
-	    	device.log ( "Sending "+displayCommand+" to "+hostIP );
-				device.log ( "  -- client: "+typeof(client) );
-				if ((typeof(client.destroyed) != 'boolean') || (client.destroyed==true)) {
+	    	let displayCommand=command.substring(0, command.length -1);
+	    	device.log ( "Sending "+displayCommand+" to "+device.getName()+" at "+hostIP );
+
+				// check if client (net.Socket) already exists, if not then open one.
+				if ( (typeof(client) === 'undefined') || (typeof(client.destroyed) != 'boolean') || (client.destroyed==true)) {
+					device.log ( "Opening new net.Socket to "+hostIP+":"+telnetPort );
 	    		client = new net.Socket();
 					client.connect(telnetPort, hostIP);
   				// add handler for any response or other data coming from the device
 		    	client.on('data', function(data){
 		    			var tempData = data.toString().replace("\r", ";");
-		    			receivedData += tempData;
-							device.log("Got data: " + tempData + " -- receivedData: "+ receivedData);
+		    			devices[id].receivedData += tempData;
+							device.log("Got data: " + tempData + " -- receivedData: "+ devices[id].receivedData);
 							device.parseResponse ( device );
 		    	})
 					client.on('error', function(err){
@@ -655,26 +692,12 @@ class DMDevice extends Homey.Device {
 								client.destroy();
 							}
 		    	})
+					devices[id].client = client;
 				}
+//				device.log ( " Writing "+command.toString().replace("\r", ";")+" to client " );
+//				console.dir(client);			// for debugging, spit out the whole net.Socket to the console
 	    	client.write(command);
-
-	    // wait a while for a possible response
-				var delay=1000;
-				if (command in ["PWSTANDBY", "PWON"]) {
-					delay=2000;
-				}
-	    	setTimeout (device.parseResponse, delay, device);
 	    }
-
-//			closeConnection (device, receivedData) {
-//				device.log ("Closing connection, receivedData = " + receivedData);
-//				if (typeof(client.end)==='function') {
-//					client.end();
-//				} else {
-//					device.log ("  -- client.end was not a function");
-//				}
-//				device.parseResponse();
-//			}
 
 			searchForInputsByValue ( value ) {
 			// for now, consider all known Marantz/Denon inputs
