@@ -8,7 +8,10 @@ In its current state, the app requires that you enter the amplifier's IP address
 
 # Changelog
 
-**Version 1.0.0:**
+**Version 1.0.1:**
+- Bug from 1.0.0 fixed: if you have multiple devices with this driver in Homey, sometimes mixes up commands and values between devices.
+
+**Version 1.0.0 (beta only):**
 - Rewritten for SDK2 (Homey 1.5 and up)
 - Added capabilities, now a volume slider appears in mobile which sets main volume
 - Improvements include checking IP address at pairing and in settings

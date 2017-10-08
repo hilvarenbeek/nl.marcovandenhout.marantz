@@ -7,14 +7,17 @@ const Homey = require('homey');
 // We need network functions.
 var net = require('net');
 
-// Variable to hold responses from the AVR
-var receivedData = "";
-// client will hold the IP connection to the device
+// keep a list of devices in memory
+var devices = [];
+
+// client holds net.Socket
 var client = "";
-// Variable to remember if device is turned on or off. Initially assume it is off (standby)
-var onOffState = false;
-// Maximum volume
+// receivedData holds unparsed data received from the client (data received over the network)
+var receivedData = "";
+// MVMax is the maximum volume number (e.g. 70)
 var MVMax = 70;
+
+
 // The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
 var telnetPort = 23;
 // All known inputs for supported Denon/Marantz AV receivers and a more friendly name to use.
@@ -168,12 +171,22 @@ class DMDevice extends Homey.Device {
     // this method is called when the Device is inited
     onInit() {
         this.log('device init');
-        this.log('name:', this.getName());
-        this.log('class:', this.getClass());
-				var device=this;
+//				console.dir ( this.getSettings() );				// for debugging
+//				console.dir ( this.getData() );						// for debugging
+        this.log( 'name: ', this.getName() );
+        this.log( 'class: ', this.getClass() );
+				let id = this.getData().id;
+				this.log( 'id: ', id );
+
+				devices[id] = {};
+				devices[id].client = "";
+				devices[id].receivedData = "";
+				devices[id].MVMax = 70;
+
+//				console.dir(devices);			// for debugging
 
 				// get initial state
-				this.getState ();
+				this.getState();
 
         // register capability listeners
         this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this));
@@ -193,7 +206,7 @@ class DMDevice extends Homey.Device {
 				);
 				powerOnAction
 					.getArgument('zone').registerAutocompleteListener(( query, args ) => {
-						var items = this.availableZones( query );
+						var items = this.availableZones( args.device, query );
 						return Promise.resolve( items );
 					}
 				);
@@ -208,7 +221,7 @@ class DMDevice extends Homey.Device {
 				);
 				powerOffAction
 					.getArgument('zone').registerAutocompleteListener(( query, args ) => {
-						var items = this.availableZones( query );
+						var items = this.availableZones( args.device, query );
 						return Promise.resolve( items );
 					}
 				);
@@ -223,7 +236,7 @@ class DMDevice extends Homey.Device {
 				);
 				muteAction
 					.getArgument('zone').registerAutocompleteListener(( query, args ) => {
-						var items = this.availableZones( query );
+						var items = this.availableZones( args.device, query );
 						return Promise.resolve( items );
 					}
 				);
@@ -238,7 +251,7 @@ class DMDevice extends Homey.Device {
 				);
 				unMuteAction
 					.getArgument('zone').registerAutocompleteListener(( query, args ) => {
-						var items = this.availableZones( query );
+						var items = this.availableZones( args.device, query );
 						return Promise.resolve( items );
 					}
 				);
@@ -254,7 +267,7 @@ class DMDevice extends Homey.Device {
 				);
 				setVolumeAction
 					.getArgument('zone').registerAutocompleteListener(( query, args ) => {
-						var items = this.availableZones( query );
+						var items = this.availableZones( args.device, query );
 						return Promise.resolve( items );
 					}
 				);
@@ -270,7 +283,7 @@ class DMDevice extends Homey.Device {
 				);
 				setVolumeStepAction
 					.getArgument('zone').registerAutocompleteListener(( query, args ) => {
-						var items = this.availableZones( query );
+						var items = this.availableZones( args.device, query );
 						return Promise.resolve( items );
 					}
 				);
@@ -287,7 +300,7 @@ class DMDevice extends Homey.Device {
 				changeInputAction
 					.getArgument('zone')
 					.registerAutocompleteListener(( query, args ) => {
-						var items = this.availableZones( query );
+						var items = this.availableZones( args.device, query );
 						return Promise.resolve( items );
 					});
 				changeInputAction
@@ -308,20 +321,27 @@ class DMDevice extends Homey.Device {
 
     // this method is called when the Device is added
     onAdded() {
-        this.log('device added');
+				let id = this.getData().id;
+        this.log('device added: ',id);
+				devices[id] = {};
+				devices[id].client = "";
+				devices[id].receivedData = "";
+				devices[id].MVMax = 70;
+//				console.dir(devices);				// for debugging
     }
 
     // this method is called when the Device is deleted
     onDeleted() {
-        this.log('device deleted');
+				let id = this.getData().id;
+			  this.log('device deleted: ',id);
+				delete devices[id];
+//				console.dir(devices);				// for debugging
     }
 
     // this method is called when the Device has requested a state change (turned on or off)
     onCapabilityOnoff( value, opts, callback ) {
         // ... set value to real device
-        this.log("Capability called: onoff");
-				this.log("value: "+JSON.stringify(value));
-				this.log("opts: "+JSON.stringify(opts));
+        this.log("Capability called: onoff value: ",value);
 				if (value) {
 					this.powerOn ( this, "Whole unit" );
 				} else {
@@ -332,7 +352,7 @@ class DMDevice extends Homey.Device {
     }
 
 		onCapabilityVolumeMute( value, opts, callback ) {
-			this.log("Capability called: volume_mute");
+			this.log("Capability called: volume_mute value: ",value);
 			if (value) {
 				this.mute ( this, "Main Zone" );
 			} else {
@@ -361,35 +381,35 @@ class DMDevice extends Homey.Device {
 		}
 
 		onActionMute( device, zone ) {
-			this.log("Action called: mute");
-			this.mute( device, zone );
+			device.log("Action called: mute");
+			device.mute( device, zone );
 		}
 
 		onActionUnMute( device, zone ) {
-			this.log("Action called: unMute");
-			this.unMute( device, zone );
+			device.log("Action called: unMute");
+			device.unMute( device, zone );
 		}
 
 		onActionSetVolume( device, zone, volume ) {
-			this.log("Action called: setVolume");
-			this.setVolume( device, zone, volume );
+			device.log("Action called: setVolume");
+			device.setVolume( device, zone, volume );
 		}
 
 		onActionSetVolumeStep( device, zone, volumeChange ) {
-			this.log("Action called: setVolumeStep");
-			this.setVolumeStep( device, zone, volumeChange );
+			device.log("Action called: setVolumeStep");
+			device.setVolumeStep( device, zone, volumeChange );
 		}
 
 		onActionChangeInput( device, zone, input ) {
-			this.log("Action called: changeInput");
-			this.changeInputSource ( device, zone, input );
+			device.log("Action called: changeInput");
+			device.changeInputSource ( device, zone, input );
 		}
 
 // Note: customCommand affects all zones for a device, so you can run a customCommand from Zone2 and it will run just as if it was run from mainZone
 		onActionCustomCommand( device, command ) {
-			this.log("Action called: customCommand");
+			device.log("Action called: customCommand");
 			command += '\r';
-			this.sendCommand ( this, command );
+			device.sendCommand ( device, command );
 		}
 
 		getState () {
@@ -410,6 +430,8 @@ class DMDevice extends Homey.Device {
 		}
 
 		parseResponse ( device ) {
+			let id = device.getData().id;
+			let receivedData = devices[id].receivedData;
 			device.log("Parsing response, receivedData: " + receivedData);
 			if (receivedData.indexOf("PWON") >= 0) {
 				device.setCapabilityValue("onoff", true);
@@ -425,6 +447,8 @@ class DMDevice extends Homey.Device {
 		    var maxRes = maxSlice.split(";");
 				MVMax = maxRes[0].substr(6,2);			// ignore possible third digit
 				device.log("parseResponse: found MVMAX of "+MVMax);
+				let id = device.getData().id;
+				devices[id].MVMax = MVMax;
 			}
 // Run a Regular Expression to find the first Main Volume response (if any)
 			var MVRegEx = /MV(\d){2}/;
@@ -436,7 +460,7 @@ class DMDevice extends Homey.Device {
 				device.log("parseResponse: set setVolume " + MainVolume);
 			}
 // done with the receivedData, clear it for the next responses
-			receivedData = "";
+			devices[id].receivedData = "";
 		}
 
 		powerOn ( device, zone ) {
@@ -453,7 +477,7 @@ class DMDevice extends Homey.Device {
 					command = 'Z2ON\r'
 					break;
 			}
-			this.sendCommand ( this, command );
+			device.sendCommand ( device, command );
 		}
 
 		powerOff ( device, zone ) {
@@ -470,7 +494,7 @@ class DMDevice extends Homey.Device {
 					command = 'Z2OFF\r'
 					break;
 			}
-			this.sendCommand ( this, command );
+			device.sendCommand ( device, command );
 		}
 
 		changeInputSource ( device, zone, input ) {
@@ -488,7 +512,7 @@ class DMDevice extends Homey.Device {
 						break;
 				}
 				var command = sourceZone+input+'\r';
-				this.sendCommand ( this, command );
+				device.sendCommand ( device, command );
 			}
 
 		mute ( device, zone ) {
@@ -505,7 +529,7 @@ class DMDevice extends Homey.Device {
 					command = 'Z3MUON\r'
 					break;
 			}
-			this.sendCommand ( this, command );
+			device.sendCommand ( device, command );
 		}
 
 		unMute ( device, zone ) {
@@ -522,7 +546,7 @@ class DMDevice extends Homey.Device {
 					command = 'Z3MUOFF\r'
 					break;
 			}
-			this.sendCommand ( this, command );
+			device.sendCommand ( device, command );
 		}
 
 		setVolume ( device, zone, targetVolume ) {
@@ -545,7 +569,7 @@ class DMDevice extends Homey.Device {
 					break;
 			}
 			var command = volumeZone+asciiVolume+'\r';
-			this.sendCommand ( this, command );
+			device.sendCommand ( device, command );
 		}
 
 		setVolumeStep ( device, zone, volumeChange ) {
@@ -573,7 +597,7 @@ class DMDevice extends Homey.Device {
 				}
 				var command = volumeZone+upOrDown+'\r';
 				for(var i = 0; i < Math.abs(volumeChange); i++) {
-						setTimeout(	this.sendCommand, (i * 750), device, command);
+						setTimeout(	device.sendCommand, (i * 750), device, command);
 					}
 				}
 			}
@@ -592,7 +616,7 @@ class DMDevice extends Homey.Device {
 						break;
 				}
 				var command = volumeZone+'\r';
-				this.sendCommand ( this, command );
+				device.sendCommand ( device, command );
 			}
 
 			volumeDown ( device, zone ) {
@@ -609,7 +633,7 @@ class DMDevice extends Homey.Device {
 						break;
 				}
 				var command = volumeZone+'\r';
-				this.sendCommand ( this, command );
+				device.sendCommand ( device, command );
 			}
 
 			changeInputSource ( device, zone, input ) {
@@ -627,26 +651,31 @@ class DMDevice extends Homey.Device {
 							break;
 					}
 					var command = sourceZone+input+'\r';
-					this.sendCommand ( this, command );
+					device.sendCommand ( device, command );
 				}
 
     //
 
 	    sendCommand ( device, command ) {
-				var settings = device.getSettings();
-				var hostIP = settings.settingIPAddress;
+				let settings = device.getSettings();
+				let hostIP = settings.settingIPAddress;
+				let id = device.getData().id;
+				let client = devices[id].client;
+
 	    	// for logging strip last char which will be the newline \n char
-	    	var displayCommand=command.substring(0, command.length -1);
-	    	device.log ( "Sending "+displayCommand+" to "+hostIP );
-				device.log ( "  -- client: "+typeof(client) );
-				if ((typeof(client.destroyed) != 'boolean') || (client.destroyed==true)) {
+	    	let displayCommand=command.substring(0, command.length -1);
+	    	device.log ( "Sending "+displayCommand+" to "+device.getName()+" at "+hostIP );
+
+				// check if client (net.Socket) already exists, if not then open one.
+				if ( (typeof(client) === 'undefined') || (typeof(client.destroyed) != 'boolean') || (client.destroyed==true)) {
+					device.log ( "Opening new net.Socket to "+hostIP+":"+telnetPort );
 	    		client = new net.Socket();
 					client.connect(telnetPort, hostIP);
   				// add handler for any response or other data coming from the device
 		    	client.on('data', function(data){
-		    			var tempData = data.toString().replace("\r", ";");
-		    			receivedData += tempData;
-							device.log("Got data: " + tempData + " -- receivedData: "+ receivedData);
+		    			let tempData = data.toString().replace(/\r/g, ";");
+		    			devices[id].receivedData += tempData;
+							device.log("Got data: " + tempData + " -- receivedData: "+ devices[id].receivedData);
 							device.parseResponse ( device );
 		    	})
 					client.on('error', function(err){
@@ -655,26 +684,12 @@ class DMDevice extends Homey.Device {
 								client.destroy();
 							}
 		    	})
+					devices[id].client = client;
 				}
+//				device.log ( " Writing "+command.toString().replace("\r", ";")+" to client " );
+//				console.dir(client);			// for debugging, spit out the whole net.Socket to the console
 	    	client.write(command);
-
-	    // wait a while for a possible response
-				var delay=1000;
-				if (command in ["PWSTANDBY", "PWON"]) {
-					delay=2000;
-				}
-	    	setTimeout (device.parseResponse, delay, device);
 	    }
-
-//			closeConnection (device, receivedData) {
-//				device.log ("Closing connection, receivedData = " + receivedData);
-//				if (typeof(client.end)==='function') {
-//					client.end();
-//				} else {
-//					device.log ("  -- client.end was not a function");
-//				}
-//				device.parseResponse();
-//			}
 
 			searchForInputsByValue ( value ) {
 			// for now, consider all known Marantz/Denon inputs
@@ -689,9 +704,9 @@ class DMDevice extends Homey.Device {
 				return tempItems;
 			}
 
-			availableZones ( value ) {
+			availableZones ( device, value ) {
 				var possibleZones = [];
-				var settings = this.getSettings();
+				var settings = device.getSettings();
 				if (settings.settingZoneMain) possibleZones.push({ icon: "", name: "Main Zone", description: "", zone: "Main Zone" });
 				if (settings.settingZone2) possibleZones.push({ icon: "", name: "Zone 2", description: "", zone: "Zone2" });
 				if (settings.settingZone3) possibleZones.push({ icon: "", name: "Zone 3", description: "", zone: "Zone3" });
