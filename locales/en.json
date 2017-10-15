@@ -5,9 +5,12 @@
 			"title": "Finding device...",
 			"error": "An error has occurred.",
       "required": "IP address is a required value.",
+			"invalidIP": "Please enter a valid IPv4 address, e.g. 192.168.1.10",
       "ipAddress": "IP address",
 			"deviceName": "Device name",
-      "saveSettings": "Save settings"
+      "saveSettings": "Save settings",
+			"zone2": "Zone 2",
+			"zone3": "Zone 3"
 		}
   }
 }

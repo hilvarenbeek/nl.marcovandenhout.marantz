@@ -1,0 +1,96 @@
+<script>
+
+Homey.setTitle( __('pair.start.title') );
+
+Homey.on('error', function( errortype, callback ){
+	if (errortype == 'error') {
+		Homey.alert(__('pair.start.error'), 'error');
+		Homey.done();
+	};
+	if (errortype == 'nosettings') {
+		Homey.alert(__('pair.start.nosettings'), 'error');
+		Homey.done();
+	}
+})
+
+Homey.on('continue', function( success, callback ){
+		Homey.showView('list_devices');
+})
+
+function saveSettings () {
+
+	// variables
+	var inputIPAddress = document.getElementById( 'ipAddress' ).value;
+	var inputDeviceName = document.getElementById( 'deviceName' ).value;
+	var inputZone2 = document.getElementById( 'Zone2' ).checked;
+	var inputZone3 = document.getElementById( 'Zone3' ).checked;
+
+	// IP is required
+	if (inputIPAddress == "") {
+		// Give error, required values
+		Homey.alert(__('pair.start.required'), 'error');
+		return;
+		// Homey.done() would close the pairing window, but we want to give the user the chance to correct and resubmit
+	}
+
+	// create Regular Expression that validates for IPv4 addresses, then do the actual test on the input.
+	var Ipv4RegEx = new RegExp ('^(([01]?\\d\\d?|2[0-4]\\d|25[0-5]).){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$');
+	var IPInputOK = Ipv4RegEx.test(inputIPAddress);
+  if (!IPInputOK) {
+		Homey.alert(__('pair.start.invalidIP'), 'error');
+		return;
+	}
+
+	// Build data array
+	var data = {
+		ipaddress: inputIPAddress,
+		deviceName: inputDeviceName,
+		zone2: inputZone2,
+		zone3: inputZone3,
+	};
+	// Continue to back-end, pass along data
+	Homey.emit( 'get_devices', data );
+}
+
+</script>
+
+    <p data-i18n="pair.start.intro">enter IP address and name</p>
+
+		<style>
+			.pairSettings {
+				font-size:16px;
+				border:none;
+			}
+
+			input {
+				font-size:16px;
+			}
+
+		</style>
+
+		<table class="pairSettings">
+			<tr>
+				<td style="width:100px;" data-i18n="pair.start.ipAddress">IP</td>
+				<td><input id="ipAddress" type="text" pattern="^(([01]?\\d\\d?|2[0-4]\\d|25[0-5]).){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$" placeholder="192.168.1.10" required /></td>
+			</tr>
+			<tr>
+				<td style="width:100px;" data-i18n="pair.start.deviceName">Name</td>
+				<td><input id="deviceName" type="text" placeholder="Amplifier" /></td>
+			</tr>
+			<tr>
+				<td style="width:100px;" data-i18n="pair.start.zone2">Name</td>
+				<td><input id="Zone2" type="checkbox" value="add Zone 2" placeholder="" checked /></td>
+			</tr>
+			<tr>
+				<td style="width:100px;" data-i18n="pair.start.zone3">Name</td>
+				<td><input id="Zone3" type="checkbox" value="add Zone 3" placeholder="" /></td>
+			</tr>
+		</table>
+
+		<p>
+		&nbsp;
+	  </p>
+
+<fieldset>
+    <button class="button" data-i18n="pair.start.saveSettings" onclick="saveSettings()">Save</button>
+</fieldset>

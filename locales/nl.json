@@ -5,6 +5,7 @@
 			"title": "Apparaat zoeken...",
 			"error": "Er is een fout opgetreden.",
       "required": "IP adres is verplicht.",
+			"invalidIP": "Invoerd IP adres voldoet niet aan een geldig IPv4 formaat, zoals 192.168.1.10",
       "ipAddress": "IP adres",
 			"deviceName": "Naam van het apparaat",
       "saveSettings": "Gegevens opslaan"
