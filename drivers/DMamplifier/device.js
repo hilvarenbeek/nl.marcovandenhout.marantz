@@ -436,9 +436,9 @@ class DMDevice extends Homey.Device {
 				device.log( "parseResponse: set onoff false" );
 			}
 			if (receivedData.indexOf( "MVMAX" ) >= 0) {
-		    var max = receivedData.lastIndexOf( "MVMAX" );
-		    var maxSlice = receivedData.slice(max);
-		    var maxRes = maxSlice.split( ";" );
+                var max = receivedData.lastIndexOf( "MVMAX" );
+                var maxSlice = receivedData.slice(max);
+                var maxRes = maxSlice.split( ";" );
 				MVMax = maxRes[0].substr(6,2);			// ignore possible third digit
 				device.log( "parseResponse: found MVMAX of " + MVMax);
 				let id = device.getData().id;
@@ -490,24 +490,6 @@ class DMDevice extends Homey.Device {
 			}
 			device.sendCommand ( device, command );
 		}
-
-		changeInputSource ( device, zone, input ) {
-			// supported zones: "Main Zone" (default), "Zone2", "Zone3"
-				var sourceZone = "SI";
-				switch ( zone ) {
-					case "Main Zone":
-						sourceZone = "SI";
-						break;
-					case "Zone2":
-						sourceZone = "Z2";
-						break;
-					case "Zone3":
-						sourceZone = "Z3";
-						break;
-				}
-				var command = sourceZone+input + "\r";
-				device.sendCommand ( device, command );
-			}
 
 		mute ( device, zone ) {
 			// supported zones: "Main Zone" (default), "Zone2", "Zone3"
@@ -614,16 +596,16 @@ class DMDevice extends Homey.Device {
         }
 
         volumeDown ( device, zone ) {
-		    var volumeZone = "MV";
-		    switch (zone) {
-			    case "Main Zone":
-			        volumeZone = "MV";
+            var volumeZone = "MV";
+            switch (zone) {
+                case "Main Zone":
+                    volumeZone = "MV";
+                    break;
+                case "Zone2":
+                    volumeZone = "Z2";
 			        break;
-			    case "Zone2":
-			        volumeZone = "Z2";
-			        break;
-			    case "Zone3":
-			        volumeZone = "Z3";
+                case "Zone3":
+                    volumeZone = "Z3";
 			        break;
 			}
             var command = volumeZone + "DOWN\r";
@@ -651,35 +633,35 @@ class DMDevice extends Homey.Device {
     //
 
 	    sendCommand ( device, command ) {
-				let settings = device.getSettings();
-				let hostIP = settings.settingIPAddress;
-				let id = device.getData().id;
-				let client = devices[id].client;
+            let settings = device.getSettings();
+            let hostIP = settings.settingIPAddress;
+            let id = device.getData().id;
+            let client = devices[id].client;
 
-	    	// for logging strip last char which will be the newline \n char
-	    	let displayCommand=command.substring(0, command.length -1);
+            // for logging strip last char which will be the newline \n char
+            let displayCommand=command.substring(0, command.length -1);
 	    	device.log ( "Sending " + displayCommand + " to " + device.getName() + " at " + hostIP );
 
-				// check if client (net.Socket) already exists, if not then open one.
-				if ( ( typeof( client ) === "undefined" ) || ( typeof( client.destroyed ) != "boolean") || ( client.destroyed == true )) {
-					device.log ( "Opening new net.Socket to " + hostIP + ":" + telnetPort );
-	    		client = new net.Socket();
-					client.connect(telnetPort, hostIP);
-  				// add handler for any response or other data coming from the device
-		    	client.on ( "data", function(data) {
-		    			let tempData = data.toString().replace(/\r/g, ";");
-		    			devices[id].receivedData += tempData;
-							device.log( "Got data: " + tempData + " -- receivedData: "+ devices[id].receivedData );
-							device.parseResponse ( device );
-		    	})
-				client.on ( "error", function(err) {
-		    	    device.log( "IP socket error: " + err.message );
-							if ( typeof( client.destroy ) == "function" ) {
-								client.destroy();
-							}
-		    	})
-					devices[id].client = client;
-				}
+            // check if client (net.Socket) already exists, if not then open one.
+            if ( ( typeof( client ) === "undefined" ) || ( typeof( client.destroyed ) != "boolean") || ( client.destroyed == true )) {
+                device.log ( "Opening new net.Socket to " + hostIP + ":" + telnetPort );
+                client = new net.Socket();
+                client.connect(telnetPort, hostIP);
+                // add handler for any response or other data coming from the device
+                client.on( "data", function (data) {
+                    let tempData = data.toString().replace(/\r/g, ";");
+                    devices[id].receivedData += tempData;
+                    device.log( "Got data: " + tempData + " -- receivedData: " + devices[id].receivedData );
+                    device.parseResponse(device);
+                });
+                client.on( "error", function (err) {
+                    device.log( "IP socket error: " + err.message );
+                    if ( typeof (client.destroy) == "function" ) {
+                        client.destroy();
+                    }
+                });
+                devices[id].client = client;
+            }
 
             client.write(command);
 	    }
@@ -700,9 +682,15 @@ class DMDevice extends Homey.Device {
         availableZones ( device, value ) {
             var possibleZones = [];
             var settings = device.getSettings();
-            if (settings.settingZoneMain) possibleZones.push({ icon: "", name: "Main Zone", description: "", zone: "Main Zone" });
-            if (settings.settingZone2) possibleZones.push({ icon: "", name: "Zone 2", description: "", zone: "Zone2" });
-            if (settings.settingZone3) possibleZones.push({ icon: "", name: "Zone 3", description: "", zone: "Zone3" });
+            if ( settings.settingZoneMain ) {
+                possibleZones.push ( { icon: "", name: "Main Zone", description: "", zone: "Main Zone" } );
+            }
+            if ( settings.settingZone2 ) {
+                possibleZones.push ( { icon: "", name: "Zone 2", description: "", zone: "Zone2" } );
+            }
+            if ( settings.settingZone3 ) {
+                possibleZones.push ( { icon: "", name: "Zone 3", description: "", zone: "Zone3" } );
+            }
             return possibleZones;
         }
 }
