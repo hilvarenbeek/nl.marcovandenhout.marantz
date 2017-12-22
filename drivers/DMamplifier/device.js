@@ -603,7 +603,7 @@ class DMDevice extends Homey.Device {
                     break;
                 case "Zone2":
                     volumeZone = "Z2";
-			        break;
+                    break;
                 case "Zone3":
                     volumeZone = "Z3";
 			        break;
@@ -632,7 +632,7 @@ class DMDevice extends Homey.Device {
 
     //
 
-	    sendCommand ( device, command ) {
+        sendCommand ( device, command ) {
             let settings = device.getSettings();
             let hostIP = settings.settingIPAddress;
             let id = device.getData().id;
@@ -640,10 +640,10 @@ class DMDevice extends Homey.Device {
 
             // for logging strip last char which will be the newline \n char
             let displayCommand=command.substring(0, command.length -1);
-	    	device.log ( "Sending " + displayCommand + " to " + device.getName() + " at " + hostIP );
+            device.log ( "Sending " + displayCommand + " to " + device.getName() + " at " + hostIP );
 
             // check if client (net.Socket) already exists, if not then open one.
-            if ( ( typeof( client ) === "undefined" ) || ( typeof( client.destroyed ) != "boolean") || ( client.destroyed == true )) {
+            if ( ( typeof( client ) === "undefined" ) || ( typeof( client.destroyed ) != "boolean") || ( client.destroyed === true )) {
                 device.log ( "Opening new net.Socket to " + hostIP + ":" + telnetPort );
                 client = new net.Socket();
                 client.connect(telnetPort, hostIP);
@@ -664,7 +664,7 @@ class DMDevice extends Homey.Device {
             }
 
             client.write(command);
-	    }
+        }
 
         searchForInputsByValue ( value ) {
 			// for now, consider all known Marantz/Denon inputs
