@@ -1,11 +1,11 @@
 /* From Homey SDK 2.0 docs: The file device.js is a representation of an already paired device on Homey */
 
-'use strict';
+"use strict";
 
-const Homey = require('homey');
+const Homey = require("homey");
 
 // We need network functions.
-var net = require('net');
+var net = require("net");
 
 // keep a list of devices in memory
 var devices = [];
@@ -24,22 +24,22 @@ var telnetPort = 23;
 // If you find your favorite input missing, please file a bug on the GitHub repository.
 var allPossibleInputs = [
 		{	inputName: "PHONO",
-	 		friendlyName: "Phono"
+            friendlyName: "Phono"
 		},
-		{	inputName: "CD",
-	 		friendlyName: "CD player"
+        {   inputName: "CD",
+            friendlyName: "CD player"
 		},
 		{	inputName: "DVD",
-	 		friendlyName: "DVD player"
+            friendlyName: "DVD player"
 		},
 		{	inputName: "BD",
-	 		friendlyName: "BluRay player"
+            friendlyName: "BluRay player"
 		},
 		{	inputName: "TV",
-	 		friendlyName: "TV"
+            friendlyName: "TV"
 		},
 		{	inputName: "SAT/CBL",
-	 		friendlyName: "SAT/Cable TV"
+            friendlyName: "SAT/Cable TV"
 		},
 		{	inputName: "SAT",
 			friendlyName: "Satellite"
@@ -51,118 +51,118 @@ var allPossibleInputs = [
 			friendlyName: "VCR"
 		},
 		{	inputName: "GAME",
-	 		friendlyName: "Game"
+            friendlyName: "Game"
 		},
 		{	inputName: "V.AUX",
-	 		friendlyName: "Video Aux"
+            friendlyName: "Video Aux"
 		},
 		{	inputName: "TUNER",
-	 		friendlyName: "Tuner"
+            friendlyName: "Tuner"
 		},
 		{	inputName: "DOCK",
-	 		friendlyName: "Dock"
+            friendlyName: "Dock"
 		},
 		{	inputName: "HDRADIO",
 			friendlyName: "HD Radio"
 		},
 		{	inputName: "SIRIUS",
-	 		friendlyName: "Sirius Radio"
+            friendlyName: "Sirius Radio"
 		},
 		{	inputName: "SPOTIFY",
 			friendlyName: "Spotify"
 		},
 		{	inputName: "SIRIUSXM",
-	 		friendlyName: "SiriusXM"
+            friendlyName: "SiriusXM"
 		},
 		{	inputName: "RHAPSODY",
-	 		friendlyName: "Rhapsody"
+            friendlyName: "Rhapsody"
 		},
 		{	inputName: "PANDORA",
-	 		friendlyName: "Pandora"
+            friendlyName: "Pandora"
 		},
 		{	inputName: "NAPSTER",
-	 		friendlyName: "Napster"
+            friendlyName: "Napster"
 		},
 		{	inputName: "LASTFM",
-	 		friendlyName: "Last.fm"
+            friendlyName: "Last.fm"
 		},
 		{	inputName: "FLICKR",
-	 		friendlyName: "Flickr"
+            friendlyName: "Flickr"
 		},
 		{	inputName: "IRADIO",
-	 		friendlyName: "Internet Radio"
+            friendlyName: "Internet Radio"
 		},
 		{	inputName: "SERVER",
-	 		friendlyName: "Server"
+            friendlyName: "Server"
 		},
 		{	inputName: "FAVORITES",
-	 		friendlyName: "Favorites"
+            friendlyName: "Favorites"
 		},
 		{	inputName: "CDR",
-	 		friendlyName: "CDR"
+            friendlyName: "CDR"
 		},
 		{	inputName: "AUX1",
-	 		friendlyName: "Aux 1"
+            friendlyName: "Aux 1"
 		},
 		{	inputName: "AUX2",
-	 		friendlyName: "Aux 2"
+            friendlyName: "Aux 2"
 		},
 		{	inputName: "AUX3",
-	 		friendlyName: "Aux 3"
+            friendlyName: "Aux 3"
 		},
 		{	inputName: "AUX4",
-	 		friendlyName: "Aux 4"
+            friendlyName: "Aux 4"
 		},
 		{	inputName: "AUX5",
-	 		friendlyName: "Aux 5"
+            friendlyName: "Aux 5"
 		},
 		{	inputName: "AUX6",
-	 		friendlyName: "Aux 6"
+            friendlyName: "Aux 6"
 		},
 		{	inputName: "AUX7",
-	 		friendlyName: "Aux 7"
+            friendlyName: "Aux 7"
 		},
 		{	inputName: "NET",
-	 		friendlyName: "Net"
+            friendlyName: "Net"
 		},
 		{	inputName: "NET/USB",
-	 		friendlyName: "Net/USB"
+            friendlyName: "Net/USB"
 		},
 		{	inputName: "BT",
-	 		friendlyName: "Bluetooth"
+            friendlyName: "Bluetooth"
 		},
 		{	inputName: "M-XPORT",
-	 		friendlyName: "M-XPort"
+            friendlyName: "M-XPort"
 		},
 		{	inputName: "USB/IPOD",
-	 		friendlyName: "USB/iPod"
+            friendlyName: "USB/iPod"
 		},
 		{	inputName: "USB",
-	 		friendlyName: "USB port"
+            friendlyName: "USB port"
 		},
 		{	inputName: "IPD",
-	 		friendlyName: "iPod direct start playback"
+            friendlyName: "iPod direct start playback"
 		},
 		{	inputName: "IRP",
-	 		friendlyName: "Internet Radio Recent Play"
+            friendlyName: "Internet Radio Recent Play"
 		},
 		{	inputName: "FVP",
-	 		friendlyName: "Online Music Favorites Play"
+            friendlyName: "Online Music Favorites Play"
 		},
 		{	inputName: "OTP",
-	 		friendlyName: "One Touch Play"
+            friendlyName: "One Touch Play"
 		},
 		{	inputName: "IPOD",
-	 		friendlyName: "iPod"
+            friendlyName: "iPod"
 		},
 		{	inputName: "AUXA",
 			friendlyName: "Aux A"
 		},
 		{	inputName: "AUXB",
-	 		friendlyName: "Aux B"
+            friendlyName: "Aux B"
 		},
 		{	inputName: "AUXC",
-	 		friendlyName: "Aux C"
+            friendlyName: "Aux C"
 		}
 ];
 
@@ -170,13 +170,11 @@ class DMDevice extends Homey.Device {
 
     // this method is called when the Device is inited
     onInit() {
-        this.log('device init');
-//				console.dir ( this.getSettings() );				// for debugging
-//				console.dir ( this.getData() );						// for debugging
-        this.log( 'name: ', this.getName() );
-        this.log( 'class: ', this.getClass() );
+        this.log( "device init" );
+        this.log( "name: ", this.getName() );
+        this.log( "class: ", this.getClass() );
 				let id = this.getData().id;
-				this.log( 'id: ', id );
+				this.log( "id: ", id );
 
 				devices[id] = {};
 				devices[id].client = "";
