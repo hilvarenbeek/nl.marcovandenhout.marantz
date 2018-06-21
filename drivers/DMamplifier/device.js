@@ -697,7 +697,7 @@ class DMDevice extends Homey.Device {
 				var tempItems = [];
 				for (var i = 0; i < possibleInputs.length; i++) {
 					var tempInput = possibleInputs[i];
-					if ( tempInput.friendlyName.indexOf(value) >= 0 ) {
+					if ( tempInput.friendlyName.toLowerCase().indexOf(value.toLowerCase()) >= 0 ) {
 						tempItems.push({ icon: "", name: tempInput.friendlyName, description: "", inputName: tempInput.inputName });
 					}
 				}
