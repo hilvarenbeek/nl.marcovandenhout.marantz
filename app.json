@@ -173,7 +173,7 @@
               "type": "autocomplete",
               "placeholder": {
                 "en": "Input",
-                "en": "Ingang"
+                "nl": "Ingang"
               }
             }
           ]
