@@ -191,8 +191,8 @@ class DMDevice extends Homey.Device {
 				// get initial state
 				this.getState();
 
-        // register capability listeners
-        this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this));
+				// register capability listeners
+				this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this));
 				this.registerCapabilityListener('volume_set', this.onCapabilityVolumeSet.bind(this));
 				this.registerCapabilityListener('volume_mute', this.onCapabilityVolumeMute.bind(this));
 				this.registerCapabilityListener('volume_up', this.onCapabilityVolumeUp.bind(this));
@@ -222,7 +222,7 @@ class DMDevice extends Homey.Device {
 				let powerOffAction = new Homey.FlowCardAction('powerOff');
 				powerOffAction
 					.register().registerRunListener((args, state) => {
-						this.log("Flow card action powerOff args "+args);
+						this.log("Flow card action powerOff args "+JSON.stringify(args));
 						this.powerOff(args.device, args.zone.zone);
 						return Promise.resolve(true);
 					}
@@ -237,7 +237,7 @@ class DMDevice extends Homey.Device {
 				let muteAction = new Homey.FlowCardAction('mute');
 				muteAction
 					.register().registerRunListener((args, state) => {
-						this.log("Flow card action mute args "+args);
+						this.log("Flow card action mute args "+JSON.stringify(args));
 						this.onActionMute(args.device, args.zone.zone);
 						return Promise.resolve(true);
 					}
@@ -252,7 +252,7 @@ class DMDevice extends Homey.Device {
 				let unMuteAction = new Homey.FlowCardAction('unMute');
 				unMuteAction
 					.register().registerRunListener((args, state) => {
-						this.log("Flow card action unMute args "+args);
+						this.log("Flow card action unMute args "+JSON.stringify(args));
 						this.onActionUnMute(args.device, args.zone.zone);
 						return Promise.resolve(true);
 					}
@@ -267,7 +267,7 @@ class DMDevice extends Homey.Device {
 				let setVolumeAction = new Homey.FlowCardAction('setVolume');
 				setVolumeAction
 					.register().registerRunListener((args, state) => {
-						this.log("Flow card action setVolume args "+args);
+						this.log("Flow card action setVolume args "+JSON.stringify(args));
 						this.log(" setVolume volume "+args.volume);
 						this.onActionSetVolume (args.device, args.zone.zone, args.volume);
 						return Promise.resolve(true);
@@ -283,7 +283,7 @@ class DMDevice extends Homey.Device {
 				let setVolumeStepAction = new Homey.FlowCardAction('setVolumeStep');
 				setVolumeStepAction
 					.register().registerRunListener((args, state) => {
-						this.log("Flow card action setVolumeStep args: "+args);
+						this.log("Flow card action setVolumeStep args: "+JSON.stringify(args));
 						this.log(" setVolumeStep volumeChange "+args.volumeChange);
 						this.onActionSetVolumeStep (args.device, args.zone.zone, args.volumeChange);
 						return Promise.resolve(true);
@@ -300,7 +300,7 @@ class DMDevice extends Homey.Device {
 				changeInputAction
 					.register()
 					.registerRunListener((args, state) => {
-						this.log("Flow card action changeInput args "+args);
+						this.log("Flow card action changeInput args "+JSON.stringify(args));
 						this.log(" changeInput input "+args.input.inputName);
 						this.onActionChangeInput (args.device, args.zone.zone, args.input.inputName);
 						return Promise.resolve(true);
@@ -319,7 +319,7 @@ class DMDevice extends Homey.Device {
 					});
 
 				new Homey.FlowCardAction('customCommand').register().registerRunListener((args, state) => {
-					this.log("Flow card action customCommand args "+args);
+					this.log("Flow card action customCommand args "+JSON.stringify(args));
 					this.log(" customCommand command "+args.command);
 					this.onActionCustomCommand (args.device, args.command);
 					return Promise.resolve(true);
@@ -492,6 +492,7 @@ class DMDevice extends Homey.Device {
 // main zone
 			this.sendCommand ( this, 'ZM?\r' );				// Zone Main On?
 			this.sendCommand ( this, 'MV?\r' );				// Main Volume?
+			//this.sendCommand ( this, 'SI?\r' );				// Main Input Setting?
 // zone 2 if applicable
 			if (this.getSettings().settingZone2) {
 				this.sendCommand ( this, 'Z2?\r' );
@@ -595,6 +596,7 @@ class DMDevice extends Homey.Device {
 				var MainVolume = MainVolumeNumber / MVMax;
 				device.setCapabilityValue("volume_set", MainVolume);
 				device.log("parseResponse: set setVolume " + MainVolume);
+				device.log("parseResponse: set setVolume " + Math.floor((MainVolume * 100).toFixed(3)) + '%');
 			}
 // done with the receivedData, clear it for the next responses
 			devices[id].receivedData = "";
