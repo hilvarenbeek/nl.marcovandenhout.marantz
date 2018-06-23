@@ -292,8 +292,7 @@ class DMDevice extends Homey.Device {
 				changeInputAction
 					.register()
 					.registerRunListener((args, state) => {
-						this.log("Flow card action changeInput args "+args);
-						this.log(" changeInput input "+args.input.inputName);
+						this.log("Flow card action changeInput args input "+args.input.inputName);
 						this.onActionChangeInput (args.device, args.zone.zone, args.input.inputName);
 						return Promise.resolve(true);
 					});
@@ -686,8 +685,6 @@ class DMDevice extends Homey.Device {
 		    	})
 					devices[id].client = client;
 				}
-//				device.log ( " Writing "+command.toString().replace("\r", ";")+" to client " );
-//				console.dir(client);			// for debugging, spit out the whole net.Socket to the console
 	    	client.write(command);
 	    }
 
@@ -697,7 +694,7 @@ class DMDevice extends Homey.Device {
 				var tempItems = [];
 				for (var i = 0; i < possibleInputs.length; i++) {
 					var tempInput = possibleInputs[i];
-					if ( tempInput.friendlyName.indexOf(value) >= 0 ) {
+					if ( tempInput.friendlyName.toLowerCase().indexOf(value.toLowerCase()) >= 0 ) {
 						tempItems.push({ icon: "", name: tempInput.friendlyName, description: "", inputName: tempInput.inputName });
 					}
 				}
