@@ -166,6 +166,9 @@ var allPossibleInputs = [
 		}
 ];
 
+var triggerInputChangedAction = null,
+	triggerInputSourceAction = null;
+
 class DMDevice extends Homey.Device {
 
     // this method is called when the Device is inited
@@ -194,6 +197,11 @@ class DMDevice extends Homey.Device {
 				this.registerCapabilityListener('volume_mute', this.onCapabilityVolumeMute.bind(this));
 				this.registerCapabilityListener('volume_up', this.onCapabilityVolumeUp.bind(this));
 				this.registerCapabilityListener('volume_down', this.onCapabilityVolumeDown.bind(this));
+				this.registerCapabilityListener('inputsource', this.onCapabilityChangeInoutSource.bind(this), ( value, opts ) => {
+				  this.log('value', value);
+				  this.log('opts', opts);
+				  return Promise.resolve();
+				});
 
 				// register flow card actions
 				let powerOnAction = new Homey.FlowCardAction('powerOn');
@@ -317,6 +325,63 @@ class DMDevice extends Homey.Device {
 					return Promise.resolve(true);
 				});
 
+				// register flow card triggers
+				triggerInputSourceAction = new Homey.FlowCardTriggerDevice('inputsource');
+					triggerInputSourceAction.register().registerRunListener((args, state) => {
+						args.device.log("Flow card trigger input args: " + JSON.stringify(args));
+						args.device.log("Flow card trigger input state: " + JSON.stringify(state));
+						//this.powerOn(args.device, args.zone.zone);
+						if(state.id == args.device.getData().id) {
+							return Promise.resolve(state.input == args.input.name);
+						} else {
+							return Promise.resolve(false);
+						}
+					});
+
+					triggerInputSourceAction.getArgument('input').registerAutocompleteListener(( query, args ) => {
+						var items = this.searchForInputsByValue( query );
+						return Promise.resolve( items );
+					});
+
+				triggerInputChangedAction = new Homey.FlowCardTriggerDevice('inputchanged');
+					triggerInputChangedAction.register().registerRunListener((args, state) => {
+						args.device.log("Flow card trigger inputchanged args: " + JSON.stringify(args));
+						args.device.log("Flow card trigger inputchanged state: " + JSON.stringify(state));
+						//this.powerOn(args.device, args.zone.zone);
+						return Promise.resolve( state.id == args.device.getData().id );
+					});
+/*
+
+				// register flow card triggers
+				let triggerInputSourceAction = new Homey.FlowCardTriggerDevice('inputsource');
+					triggerInputSourceAction.register();
+
+					triggerInputSourceAction.getArgument('input').registerAutocompleteListener(( query, args ) => {
+							var items = this.searchForInputsByValue( query );
+							return Promise.resolve( items );
+						});
+
+				let triggerInputChangedAction = new Homey.FlowCardTriggerDevice('inputchanged');
+					triggerInputChangedAction.register();
+*/
+
+				// register flow card conditions
+				let inputCondition = new Homey.FlowCardCondition('is_input');
+					inputCondition
+					    .register()
+					    .registerRunListener(( args, state ) => {
+							args.device.log("Flow card condition input inputsource capability value: "+args.device.getCapabilityValue("inputsource"));
+							args.device.log("Flow card condition input args.input.name: "+JSON.stringify(args.input.name));
+					     	let inputsource = args.device.getCapabilityValue("inputsource") == args.input.name;
+					        return Promise.resolve( inputsource );
+						});
+					inputCondition
+						.getArgument('input')
+						.registerAutocompleteListener(( query, args ) => {
+							var items = this.searchForInputsByValue( query );
+							return Promise.resolve( items );
+						});
+
     } // end onInit
 
     // this method is called when the Device is added
@@ -380,6 +445,14 @@ class DMDevice extends Homey.Device {
 			callback( null );
 		}
 
+		onCapabilityChangeInoutSource( value, opts, callback ) {
+	        // ... set value to real device
+	        this.log("Capability called: inputsource value: ", value);
+			this.changeInputSource ( this, "Main Zone", value );
+	        // Then, emit a callback ( err, result )
+	        callback( null );
+	    }
+
 		onActionMute( device, zone ) {
 			device.log("Action called: mute");
 			device.mute( device, zone );
@@ -440,6 +513,70 @@ class DMDevice extends Homey.Device {
 			if (receivedData.indexOf("PWSTANDBY") >= 0) {
 				device.setCapabilityValue("onoff", false);
 				device.log("parseResponse: set onoff false");
+			}
+
+			if (receivedData.indexOf("SI") >= 0) {
+				for (var i = 0; i < allPossibleInputs.length; i++) {
+					if (receivedData.indexOf("SI" +  allPossibleInputs[i].inputName) >= 0) {
+						device.log("parseResponse: set to source " + allPossibleInputs[i].friendlyName);
+						if(device.hasCapability("inputsource")) {
+							device.setCapabilityValue("inputsource", allPossibleInputs[i].friendlyName, function(err, result) {
+								if(err != null) {
+									device.log(' setCapabilityValue: inputsource: ' + err);
+								}
+								if(result != undefined) {
+									device.log(' setCapabilityValue: inputsource: ' + result);
+								}
+							});
+						}
+
+						// trigger the card
+						let tokens = { 'input': allPossibleInputs[i].friendlyName };
+						let state = { 'id': id, 'input': allPossibleInputs[i].friendlyName };
+						//device.log(' inputsource: tokens: ' + JSON.stringify(tokens));
+						//device.log(' inputsource: state: ' + JSON.stringify(state));
+
+
+						// register flow card triggers
+						//let triggerInputSourceAction = new Homey.FlowCardTriggerDevice('inputsource');
+/*
+							triggerInputSourceAction.register().registerRunListener((args, state) => {
+								args.device.log("Flow card trigger input args: " + JSON.stringify(args.device.getData()));
+								args.device.log("Flow card trigger input state.input: " + JSON.stringify(state.input));
+								//this.powerOn(args.device, args.zone.zone);
+								if(state.id == args.device.getData().id) {
+									return Promise.resolve(state.input == args.input);
+								} else {
+									return Promise.resolve(false);
+								}
+							});
+
+							triggerInputSourceAction.getArgument('input').registerAutocompleteListener(( query, args ) => {
+								var items = this.searchForInputsByValue( query );
+								return Promise.resolve( items );
+							});
+*/
+
+							triggerInputSourceAction.trigger( device, tokens, state )
+								.then( this.log )
+								.catch( this.error )
+
+						//let triggerInputChangedAction = new Homey.FlowCardTriggerDevice('inputchanged');
+/*
+							triggerInputChangedAction.register().registerRunListener((args, state) => {
+								args.device.log("Flow card trigger inputchanged args: " + JSON.stringify(args.device.getData()));
+								args.device.log("Flow card trigger inputchanged state.input: " + JSON.stringify(state.input));
+								//this.powerOn(args.device, args.zone.zone);
+								return Promise.resolve( state.id == args.device.getData().id );
+							});
+*/
+
+							triggerInputChangedAction.trigger( device, tokens, state )
+								.then( this.log )
+								.catch( this.error )
+						break;
+					}
+				}
 			}
 			if (receivedData.indexOf("MVMAX") >= 0) {
 		    var max = receivedData.lastIndexOf('MVMAX');
