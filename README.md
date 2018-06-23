@@ -17,7 +17,7 @@ In its current state, the app requires that you enter the amplifier's IP address
 - Improvements include checking IP address at pairing and in settings
 
 **Version 0.0.8:**
-- Added volume up/down action thanks to 'Kerk en IT'
+- Added volume up/down action thanks to 'Marco van 't Klooster'
 
 **Version 0.0.7:**
 - Rewrite according to updated developers documentation at Athom
