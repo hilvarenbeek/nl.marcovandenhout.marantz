@@ -230,7 +230,6 @@ class DMDevice extends Homey.Device {
         this.getState();
 
         // register capability listeners
-<<<<<<< HEAD
         this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this));
 				this.registerCapabilityListener('volume_set', this.onCapabilityVolumeSet.bind(this));
 				this.registerCapabilityListener('volume_mute', this.onCapabilityVolumeMute.bind(this));
@@ -357,135 +356,6 @@ class DMDevice extends Homey.Device {
 					this.onActionCustomCommand (args.device, args.command);
 					return Promise.resolve(true);
 				});
-=======
-        this.registerCapabilityListener("onoff", this.onCapabilityOnoff.bind(this));
-        this.registerCapabilityListener("volume_set", this.onCapabilityVolumeSet.bind(this));
-        this.registerCapabilityListener("volume_mute", this.onCapabilityVolumeMute.bind(this));
-        this.registerCapabilityListener("volume_up", this.onCapabilityVolumeUp.bind(this));
-        this.registerCapabilityListener("volume_down", this.onCapabilityVolumeDown.bind(this));
-
-        // register flow card actions
-        let powerOnAction = new Homey.FlowCardAction("powerOn");
-        powerOnAction
-            .register().registerRunListener((args, state) => {
-                this.log("Flow card action powerOn args.zone: " + JSON.stringify(args.zone));
-                this.powerOn(args.device, args.zone.zone);
-                return Promise.resolve(true);
-            }
-            );
-        powerOnAction
-            .getArgument("zone").registerAutocompleteListener((query, args) => {
-                var items = this.availableZones(args.device, query);
-                return Promise.resolve(items);
-            }
-            );
-
-        let powerOffAction = new Homey.FlowCardAction("powerOff");
-        powerOffAction
-            .register().registerRunListener((args, state) => {
-                this.log("Flow card action powerOff args " + args);
-                this.powerOff(args.device, args.zone.zone);
-                return Promise.resolve(true);
-            }
-            );
-        powerOffAction
-            .getArgument("zone").registerAutocompleteListener((query, args) => {
-                var items = this.availableZones(args.device, query);
-                return Promise.resolve(items);
-            }
-            );
-
-        let muteAction = new Homey.FlowCardAction("mute");
-        muteAction
-            .register().registerRunListener((args, state) => {
-                this.log("Flow card action mute args " + args);
-                this.onActionMute(args.device, args.zone.zone);
-                return Promise.resolve(true);
-            }
-            );
-        muteAction
-            .getArgument("zone").registerAutocompleteListener((query, args) => {
-                var items = this.availableZones(args.device, query);
-                return Promise.resolve(items);
-            }
-            );
-
-        let unMuteAction = new Homey.FlowCardAction("unMute");
-        unMuteAction
-            .register().registerRunListener((args, state) => {
-                this.log("Flow card action unMute args " + args);
-                this.onActionUnMute(args.device, args.zone.zone);
-                return Promise.resolve(true);
-            }
-            );
-        unMuteAction
-            .getArgument("zone").registerAutocompleteListener((query, args) => {
-                var items = this.availableZones(args.device, query);
-                return Promise.resolve(items);
-            }
-            );
-
-        let setVolumeAction = new Homey.FlowCardAction("setVolume");
-        setVolumeAction
-            .register().registerRunListener((args, state) => {
-                this.log("Flow card action setVolume args " + args);
-                this.log(" setVolume volume " + args.volume);
-                this.onActionSetVolume(args.device, args.zone.zone, args.volume);
-                return Promise.resolve(true);
-            }
-            );
-        setVolumeAction
-            .getArgument("zone").registerAutocompleteListener((query, args) => {
-                var items = this.availableZones(args.device, query);
-                return Promise.resolve(items);
-            }
-            );
-
-        let setVolumeStepAction = new Homey.FlowCardAction("setVolumeStep");
-        setVolumeStepAction
-            .register().registerRunListener((args, state) => {
-                this.log("Flow card action setVolumeStep args: " + args);
-                this.log(" setVolumeStep volumeChange " + args.volumeChange);
-                this.onActionSetVolumeStep(args.device, args.zone.zone, args.volumeChange);
-                return Promise.resolve(true);
-            }
-            );
-        setVolumeStepAction
-            .getArgument("zone").registerAutocompleteListener((query, args) => {
-                var items = this.availableZones(args.device, query);
-                return Promise.resolve(items);
-            }
-            );
-
-        let changeInputAction = new Homey.FlowCardAction("changeInput");
-        changeInputAction
-            .register()
-            .registerRunListener((args, state) => {
-                this.log("Flow card action changeInput args " + args);
-                this.log(" changeInput input " + args.input.inputName);
-                this.onActionChangeInput(args.device, args.zone.zone, args.input.inputName);
-                return Promise.resolve(true);
-            });
-        changeInputAction
-            .getArgument("zone")
-            .registerAutocompleteListener((query, args) => {
-                var items = this.availableZones(args.device, query);
-                return Promise.resolve(items);
-            });
-        changeInputAction
-            .getArgument("input")
-            .registerAutocompleteListener((query, args) => {
-                var items = this.searchForInputsByValue(query);
-                return Promise.resolve(items);
-            });
-
-        new Homey.FlowCardAction("customCommand").register().registerRunListener((args, state) => {
-            this.log("Flow card action customCommand args " + args);
-            this.log(" customCommand command " + args.command);
-            this.onActionCustomCommand(args.device, args.command);
-            return Promise.resolve(true);
-        });
->>>>>>> origin/development
 
     } // end onInit
 
@@ -806,7 +676,6 @@ class DMDevice extends Homey.Device {
 
     //
 
-<<<<<<< HEAD
 	    sendCommand ( device, command ) {
 				let settings = device.getSettings();
 				let hostIP = settings.settingIPAddress;
@@ -861,69 +730,6 @@ class DMDevice extends Homey.Device {
 				if (settings.settingZone3) possibleZones.push({ icon: "", name: "Zone 3", description: "", zone: "Zone3" });
 				return possibleZones;
 			}
-=======
-    sendCommand(device, command) {
-        let settings = device.getSettings();
-        let hostIP = settings.settingIPAddress;
-        let id = device.getData().id;
-        let client = devices[id].client;
-
-        // for logging strip last char which will be the newline \n char
-        let displayCommand = command.substring(0, command.length - 1);
-        device.log("Sending " + displayCommand + " to " + device.getName() + " at " + hostIP);
-
-        // check if client (net.Socket) already exists, if not then open one.
-        if ( typeof client === "undefined" || typeof client.destroyed !== "boolean" || client.destroyed === true ) {
-            device.log("Opening new net.Socket to " + hostIP + ":" + telnetPort);
-            client = new net.Socket();
-            client.connect(telnetPort, hostIP);
-            // add handler for any response or other data coming from the device
-            client.on("data", function (data) {
-                let tempData = data.toString().replace(/\r/g, ";");
-                devices[id].receivedData += tempData;
-                device.log("Got data: " + tempData + " -- receivedData: " + devices[id].receivedData);
-                device.parseResponse(device);
-            });
-            client.on("error", function (err) {
-                device.log("IP socket error: " + err.message);
-                if (typeof client.destroy === "function") {
-                    client.destroy();
-                }
-            });
-            devices[id].client = client;
-        }
-
-        client.write(command);
-    }
-
-    searchForInputsByValue(value) {
-        // for now, consider all known Marantz/Denon inputs
-        var possibleInputs = allPossibleInputs;
-        var tempItems = [];
-        for (var i = 0; i < possibleInputs.length; i++) {
-            var tempInput = possibleInputs[i];
-            if (tempInput.friendlyName.indexOf(value) >= 0) {
-                tempItems.push({ icon: "", name: tempInput.friendlyName, description: "", inputName: tempInput.inputName });
-            }
-        }
-        return tempItems;
-    }
-
-    availableZones(device, value) {
-        var possibleZones = [];
-        var settings = device.getSettings();
-        if (settings.settingZoneMain) {
-            possibleZones.push({ icon: "", name: "Main Zone", description: "", zone: "Main Zone" });
-        }
-        if (settings.settingZone2) {
-            possibleZones.push({ icon: "", name: "Zone 2", description: "", zone: "Zone2" });
-        }
-        if (settings.settingZone3) {
-            possibleZones.push({ icon: "", name: "Zone 3", description: "", zone: "Zone3" });
-        }
-        return possibleZones;
-    }
->>>>>>> origin/development
 }
 
 module.exports = DMDevice;
