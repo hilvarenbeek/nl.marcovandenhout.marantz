@@ -8,6 +8,10 @@ In its current state, the app requires that you enter the amplifier's IP address
 
 # Changelog
 
+**Version 1.0.2:**
+- made input select for action card case insensitive (e.g. typing cd or CD will both find CD/DVD)
+- a little code cleanup
+
 **Version 1.0.1:**
 - Bug from 1.0.0 fixed: if you have multiple devices with this driver in Homey, sometimes mixes up commands and values between devices.
 

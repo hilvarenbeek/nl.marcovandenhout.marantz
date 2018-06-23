@@ -470,7 +470,6 @@ class DMDevice extends Homey.Device {
     parseResponse(device) {
         let id = device.getData().id;
         let receivedData = devices[id].receivedData;
-        device.log("Parsing response, receivedData: " + receivedData);
         if (receivedData.indexOf("PWON") >= 0) {
             device.setCapabilityValue("onoff", true);
             device.log("parseResponse: set onoff true");
