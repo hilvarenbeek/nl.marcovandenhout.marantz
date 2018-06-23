@@ -154,14 +154,7 @@
               "nl": "Schakel input"
           },
           "args": [
-            {
-              "name": "input",
-              "type": "autocomplete",
-              "placeholder": {
-                "en": "Input"
-              }
-            },
-            {
+	          {
               "name": "device",
               "type": "device",
               "placeholder": {
@@ -174,6 +167,14 @@
               "name": "zone",
               "type": "autocomplete",
               "placeholder": { "en": "Zone" }
+            },
+            {
+              "name": "input",
+              "type": "autocomplete",
+              "placeholder": {
+                "en": "Input",
+                "en": "Ingang"
+              }
             }
           ]
       },
