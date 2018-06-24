@@ -8,6 +8,12 @@ In its current state, the app requires that you enter the amplifier's IP address
 
 # Changelog
 
+**Version 1.0.2:**
+- added 'when...' and '...then' flow cards, added credits to Marco van 't Klooster
+- made input select for action card case insensitive (e.g. typing cd or CD will both find CD/DVD)
+- link to issue tracker and forum
+- a little code cleanup
+
 **Version 1.0.1:**
 - Bug from 1.0.0 fixed: if you have multiple devices with this driver in Homey, sometimes mixes up commands and values between devices.
 
@@ -17,7 +23,7 @@ In its current state, the app requires that you enter the amplifier's IP address
 - Improvements include checking IP address at pairing and in settings
 
 **Version 0.0.8:**
-- Added volume up/down action thanks to 'Kerk en IT'
+- Added volume up/down action thanks to 'Marco van 't Klooster'
 
 **Version 0.0.7:**
 - Rewrite according to updated developers documentation at Athom
