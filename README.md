@@ -9,7 +9,9 @@ In its current state, the app requires that you enter the amplifier's IP address
 # Changelog
 
 **Version 1.0.2:**
+- added 'when...' and '...then' flow cards, added credits to Marco van 't Klooster
 - made input select for action card case insensitive (e.g. typing cd or CD will both find CD/DVD)
+- link to issue tracker and forum
 - a little code cleanup
 
 **Version 1.0.1:**
