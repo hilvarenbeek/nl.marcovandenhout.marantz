@@ -4,6 +4,8 @@
 
 const Homey = require('homey');
 
+const EXT_CONN_PORT = 5000;
+
 // We need network functions.
 var net = require('net');
 
@@ -17,6 +19,7 @@ var receivedData = "";
 // MVMax is the maximum volume number (e.g. 70)
 var MVMax = 70;
 
+var connectionTimeout = false;
 
 // The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
 var telnetPort = 23;
@@ -661,6 +664,7 @@ class DMDevice extends Homey.Device {
 				let hostIP = settings.settingIPAddress;
 				let id = device.getData().id;
 				let client = devices[id].client;
+                let server;
 
 	    	// for logging strip last char which will be the newline \n char
 	    	let displayCommand=command.substring(0, command.length -1);
@@ -670,7 +674,24 @@ class DMDevice extends Homey.Device {
 				if ( (typeof(client) === 'undefined') || (typeof(client.destroyed) != 'boolean') || (client.destroyed==true)) {
 					device.log ( "Opening new net.Socket to "+hostIP+":"+telnetPort );
 	    		client = new net.Socket();
-					client.connect(telnetPort, hostIP);
+                // spawn socket for external connections
+                client.connect(telnetPort, hostIP, function() {
+                    server = new net.createServer(function(socket) {
+                        device.log("external client connected");
+
+                        socket.on('error', console.log);
+
+                        socket.pipe(client, { end: false });
+                        client.pipe(socket, { end: false });
+                    });
+                    server.listen(EXT_CONN_PORT);
+                } );
+
+                client.on('end', () => {
+                    device.log("DISCONNECTING WITH AVR");
+                    server.close();
+                });
+
   				// add handler for any response or other data coming from the device
 		    	client.on('data', function(data){
 		    			let tempData = data.toString().replace(/\r/g, ";");
@@ -685,11 +706,19 @@ class DMDevice extends Homey.Device {
 							}
 		    	})
 					devices[id].client = client;
-				}
-//				device.log ( " Writing "+command.toString().replace("\r", ";")+" to client " );
+                }
+            //				device.log ( " Writing "+command.toString().replace("\r", ";")+" to client " );
 //				console.dir(client);			// for debugging, spit out the whole net.Socket to the console
 	    	client.write(command);
-	    }
+            // free telnet socket after it has not been used for more then x seconds
+            // if(!connectionTimeout) {
+            //     connectionTimeout = setTimeout(() => {
+            //         connectionTimeout = false;
+            //         console.log("Destroying client as it has not been used for "+ CONNECTIONTIMEOUT +" seconds");
+            //         client.destroy();
+            //     }, CONNECTIONTIMEOUT);
+	        // }
+        }
 
 			searchForInputsByValue ( value ) {
 			// for now, consider all known Marantz/Denon inputs
