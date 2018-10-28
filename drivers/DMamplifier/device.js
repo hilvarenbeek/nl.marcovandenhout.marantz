@@ -19,8 +19,6 @@ var receivedData = "";
 // MVMax is the maximum volume number (e.g. 70)
 var MVMax = 70;
 
-var connectionTimeout = false;
-
 // The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
 var telnetPort = 23;
 // All known inputs for supported Denon/Marantz AV receivers and a more friendly name to use.
@@ -679,7 +677,7 @@ class DMDevice extends Homey.Device {
                     server = new net.createServer(function(socket) {
                         device.log("external client connected");
 
-                        socket.on('error', console.log);
+                        socket.on('error', device.log);
 
                         socket.pipe(client, { end: false });
                         client.pipe(socket, { end: false });
@@ -687,7 +685,7 @@ class DMDevice extends Homey.Device {
                     server.listen(EXT_CONN_PORT);
                 } );
 
-                client.on('end', () => {
+                client.on('end', function {
                     device.log("DISCONNECTING WITH AVR");
                     server.close();
                 });
