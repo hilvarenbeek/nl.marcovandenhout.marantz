@@ -1,6 +1,6 @@
 {
   "id": "nl.marcovandenhout.marantz",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "compatibility": ">=1.5.0",
   "sdk": 2,
   "name": {
@@ -27,11 +27,79 @@
     "developers": [
       {
         "name": "Marco van den Hout",
-        "email": "marco@vandenhout.org"
+        "email": "marco@vandenhout.org" },
+      {
+        "name": "Marco van 't Klooster",
+        "email": "info@marcovantklooster.nl"
       }
     ]
   },
+  "bugs": {
+    "url": "https://github.com/hilvarenbeek/nl.marcovandenhout.marantz/issues"
+    },
+  "athomForumDiscussionId": 865,
   "flow": {
+    "triggers": [{
+                "id": "inputsource",
+                "title": {
+                    "en": "Input Source changed in",
+                    "nl": "Ingangbron veranderd in"
+               },
+               "args": [{
+                  "name": "input",
+                  "type": "autocomplete",
+                  "placeholder": {
+                    "en": "Input",
+                    "nl": "Ingang"
+                  }
+                },{
+                    "name": "device",
+                    "type": "device",
+                    "filter": "driver_id=DMamplifier"
+               }]
+            },{
+                "id": "inputchanged",
+                "title": {
+                    "en": "Input Source changed",
+                    "nl": "Ingangbron is veranderd"
+               },
+               "tokens": [{
+      				"name": "input",
+      				"type": "string",
+      				"title": {
+      					"en": "Input",
+      					"nl": "Ingang"
+      				},
+      				"example": {
+      					"en": "DVD player",
+      					"nl": "DVD player"
+      				}
+      		 }],
+               "args": [{
+                    "name": "device",
+                    "type": "device",
+                    "filter": "driver_id=DMamplifier"
+               }]
+            }],
+            "conditions": [{
+                "id": "is_input",
+                "title": {
+                  "en": "Input Source !{{is|is not}}",
+                  "nl": "Ingangsbron !{{is|is niet}}"
+                },
+                "args": [{
+                  "name": "input",
+                  "type": "autocomplete",
+                  "placeholder": {
+                    "en": "Source",
+                    "nl": "Ingang"
+                  }
+                },{
+                  "name": "device",
+                  "type": "device",
+                  "filter": "driver_id=DMamplifier"
+               }]
+            }],
       "actions": [
       {
           "id": "powerOn",
@@ -87,13 +155,6 @@
           },
           "args": [
             {
-              "name": "input",
-              "type": "autocomplete",
-              "placeholder": {
-                "en": "Input"
-              }
-            },
-            {
               "name": "device",
               "type": "device",
               "placeholder": {
@@ -106,6 +167,14 @@
               "name": "zone",
               "type": "autocomplete",
               "placeholder": { "en": "Zone" }
+            },
+            {
+              "name": "input",
+              "type": "autocomplete",
+              "placeholder": {
+                "en": "Input",
+                "nl": "Ingang"
+              }
             }
           ]
       },
@@ -247,6 +316,17 @@
       }
     ]
     },
+      "capabilities": {
+        "inputsource": {
+           "type": "string",
+           "title": {
+               "en": "Input Source",
+               "nl": "Ingangsbron"
+           },
+           "getable": true,
+           "setable": true
+          }
+      },
     "drivers": [
       {
         "id": "DMamplifier",
@@ -259,7 +339,7 @@
           "small": "drivers/DMamplifier/assets/images/small.jpg"
         },
         "class": "amplifier",
-        "capabilities": [ "onoff", "volume_set", "volume_mute", "volume_up", "volume_down" ],
+        "capabilities": [ "onoff", "volume_set", "volume_mute", "volume_up", "volume_down", "inputsource" ],
         "pair": [
           {
             "id": "start"
