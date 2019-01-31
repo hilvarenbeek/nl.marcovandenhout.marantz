@@ -8,6 +8,10 @@ In its current state, the app requires that you enter the amplifier's IP address
 
 # Changelog
 
+**Version 1.0.3:**
+- fixed bug where editing a flow card with an autocomplete item (zone or input) would crash the (mobile) app
+- fixed bug where turning mute off would crash the (mobile) app
+
 **Version 1.0.2:**
 - added 'when...' and '...then' flow cards, added credits to Marco van 't Klooster
 - made input select for action card case insensitive (e.g. typing cd or CD will both find CD/DVD)

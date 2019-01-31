@@ -332,13 +332,13 @@ class DMDevice extends Homey.Device {
                 });
             changeInputAction
                 .getArgument('zone')
-                .registerAutocompleteListener((query, args) => {
+                .registerAutocompleteListener((query) => {
                     var items = this.availableZones(args.device, query);
                     return Promise.resolve(items);
                 });
             changeInputAction
                 .getArgument('input')
-                .registerAutocompleteListener((query, args) => {
+                .registerAutocompleteListener((query) => {
                     var items = this.searchForInputsByValue(query);
                     return Promise.resolve(items);
                 });
@@ -363,7 +363,7 @@ class DMDevice extends Homey.Device {
                 }
             });
 
-            triggerInputSourceAction.getArgument('input').registerAutocompleteListener((query, args) => {
+            triggerInputSourceAction.getArgument('input').registerAutocompleteListener((query) => {
                 var items = this.searchForInputsByValue(query);
                 return Promise.resolve(items);
             });
@@ -430,7 +430,7 @@ class DMDevice extends Homey.Device {
         if (value) {
             this.mute(this, "Main Zone");
         } else {
-            this.muteOff(this, "Main Zone");
+            this.unMute(this, "Main Zone");
         }
         callback(null);
     }
@@ -793,7 +793,7 @@ class DMDevice extends Homey.Device {
         for (var i = 0; i < possibleInputs.length; i++) {
             var tempInput = possibleInputs[i];
             if (tempInput.friendlyName.toLowerCase().indexOf(value.toLowerCase()) >= 0) {
-                tempItems.push({ icon: "", name: tempInput.friendlyName, description: "", inputName: tempInput.inputName });
+                tempItems.push({ name: tempInput.friendlyName, inputName: tempInput.inputName });
             }
         }
         return tempItems;
@@ -802,9 +802,9 @@ class DMDevice extends Homey.Device {
     availableZones(device, value) {
         var possibleZones = [];
         var settings = device.getSettings();
-        if (settings.settingZoneMain) possibleZones.push({ icon: "", name: "Main Zone", description: "", zone: "Main Zone" });
-        if (settings.settingZone2) possibleZones.push({ icon: "", name: "Zone 2", description: "", zone: "Zone2" });
-        if (settings.settingZone3) possibleZones.push({ icon: "", name: "Zone 3", description: "", zone: "Zone3" });
+        if (settings.settingZoneMain) possibleZones.push({ name: "Main Zone", zone: "Main Zone" });
+        if (settings.settingZone2) possibleZones.push({ name: "Zone 2", zone: "Zone2" });
+        if (settings.settingZone3) possibleZones.push({ name: "Zone 3", zone: "Zone3" });
         return possibleZones;
     }
 }

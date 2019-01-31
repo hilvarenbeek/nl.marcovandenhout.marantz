@@ -1,409 +1,394 @@
 {
-  "id": "nl.marcovandenhout.marantz",
-  "version": "1.0.2",
-  "compatibility": ">=1.5.0",
-  "sdk": 2,
-  "name": {
-    "en": "Marantz"
-  },
-  "description": {
-    "en": "Marantz IP control app for Homey",
-    "nl": "Dit is een Marantz IP aansturing app voor Homey"
-  },
-  "category": "appliances",
-  "tags": {
-    "en": [ "denon", "marantz" ]
-  },
-  "images": {
-    "small": "./assets/images/small.jpg",
-    "large": "./assets/images/large.jpg"
-  },
-  "permissions": [],
-  "author": {
-    "name": "Marco van den Hout",
-    "email": "marco@vandenhout.org"
-  },
-  "contributors": {
-    "developers": [
-      {
-        "name": "Marco van den Hout",
-        "email": "marco@vandenhout.org" },
-      {
-        "name": "Marco van 't Klooster",
-        "email": "info@marcovantklooster.nl"
-      }
-    ]
-  },
-  "bugs": {
-    "url": "https://github.com/hilvarenbeek/nl.marcovandenhout.marantz/issues"
+    "id": "nl.marcovandenhout.marantz",
+    "version": "1.0.3",
+    "compatibility": ">=1.5.0",
+    "sdk": 2,
+    "name": {
+        "en": "Marantz"
     },
-  "athomForumDiscussionId": 865,
-  "flow": {
-    "triggers": [{
-                "id": "inputsource",
-                "title": {
-                    "en": "Input Source changed in",
-                    "nl": "Ingangbron veranderd in"
-               },
-               "args": [{
-                  "name": "input",
-                  "type": "autocomplete",
-                  "placeholder": {
+    "description": {
+        "en": "Marantz IP control app for Homey",
+        "nl": "Dit is een Marantz IP aansturing app voor Homey"
+    },
+    "category": "appliances",
+    "tags": {
+        "en": ["denon", "marantz"]
+    },
+    "images": {
+        "small": "./assets/images/small.jpg",
+        "large": "./assets/images/large.jpg"
+    },
+    "permissions": [],
+    "author": {
+        "name": "Marco van den Hout",
+        "email": "marco@vandenhout.org"
+    },
+    "contributors": {
+        "developers": [{
+                "name": "Marco van den Hout",
+                "email": "marco@vandenhout.org"
+            },
+            {
+                "name": "Marco van 't Klooster",
+                "email": "info@marcovantklooster.nl"
+            }
+        ]
+    },
+    "bugs": {
+        "url": "https://github.com/hilvarenbeek/nl.marcovandenhout.marantz/issues"
+    },
+    "athomForumDiscussionId": 865,
+    "flow": {
+        "triggers": [{
+            "id": "inputsource",
+            "title": {
+                "en": "Input Source changed in",
+                "nl": "Ingangbron veranderd in"
+            },
+            "args": [{
+                "name": "input",
+                "type": "autocomplete",
+                "placeholder": {
                     "en": "Input",
                     "nl": "Ingang"
-                  }
-                },{
-                    "name": "device",
-                    "type": "device",
-                    "filter": "driver_id=DMamplifier"
-               }]
-            },{
-                "id": "inputchanged",
+                }
+            }, {
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=DMamplifier"
+            }]
+        }, {
+            "id": "inputchanged",
+            "title": {
+                "en": "Input Source changed",
+                "nl": "Ingangbron is veranderd"
+            },
+            "tokens": [{
+                "name": "input",
+                "type": "string",
                 "title": {
-                    "en": "Input Source changed",
-                    "nl": "Ingangbron is veranderd"
-               },
-               "tokens": [{
-      				"name": "input",
-      				"type": "string",
-      				"title": {
-      					"en": "Input",
-      					"nl": "Ingang"
-      				},
-      				"example": {
-      					"en": "DVD player",
-      					"nl": "DVD player"
-      				}
-      		 }],
-               "args": [{
-                    "name": "device",
-                    "type": "device",
-                    "filter": "driver_id=DMamplifier"
-               }]
-            }],
-            "conditions": [{
-                "id": "is_input",
-                "title": {
-                  "en": "Input Source !{{is|is not}}",
-                  "nl": "Ingangsbron !{{is|is niet}}"
+                    "en": "Input",
+                    "nl": "Ingang"
                 },
-                "args": [{
-                  "name": "input",
-                  "type": "autocomplete",
-                  "placeholder": {
+                "example": {
+                    "en": "DVD player",
+                    "nl": "DVD player"
+                }
+            }],
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=DMamplifier"
+            }]
+        }],
+        "conditions": [{
+            "id": "is_input",
+            "title": {
+                "en": "Input Source !{{is|is not}}",
+                "nl": "Ingangsbron !{{is|is niet}}"
+            },
+            "args": [{
+                "name": "input",
+                "type": "autocomplete",
+                "placeholder": {
                     "en": "Source",
                     "nl": "Ingang"
-                  }
-                },{
-                  "name": "device",
-                  "type": "device",
-                  "filter": "driver_id=DMamplifier"
-               }]
-            }],
-      "actions": [
-      {
-          "id": "powerOn",
-          "title": {
-              "en": "Turn power on",
-              "nl": "Zet aan"
-          },
-          "args": [
-            {
-              "name": "device",
-              "type": "device",
-              "placeholder": {
-                "en": "Select amplifier",
-                "nl": "Selecteer versterker"
-              },
-              "filter": "driver_id=DMamplifier"
+                }
+            }, {
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=DMamplifier"
+            }]
+        }],
+        "actions": [{
+                "id": "powerOn",
+                "title": {
+                    "en": "Turn power on",
+                    "nl": "Zet aan"
+                },
+                "args": [{
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        },
+                        "filter": "driver_id=DMamplifier"
+                    },
+                    {
+                        "name": "zone",
+                        "type": "autocomplete",
+                        "placeholder": { "en": "Zone" }
+                    }
+                ]
             },
             {
-              "name": "zone",
-              "type": "autocomplete",
-              "placeholder": { "en": "Zone" }
+                "id": "powerOff",
+                "title": {
+                    "en": "Power off/standby",
+                    "nl": "Uitschakelen/standby"
+                },
+                "args": [{
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        },
+                        "filter": "driver_id=DMamplifier"
+                    },
+                    {
+                        "name": "zone",
+                        "type": "autocomplete",
+                        "placeholder": { "en": "Zone" }
+                    }
+                ]
+            },
+            {
+                "id": "changeInput",
+                "title": {
+                    "en": "Switch input",
+                    "nl": "Schakel input"
+                },
+                "args": [{
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        },
+                        "filter": "driver_id=DMamplifier"
+                    },
+                    {
+                        "name": "zone",
+                        "type": "autocomplete",
+                        "placeholder": { "en": "Zone" }
+                    },
+                    {
+                        "name": "input",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "Input",
+                            "nl": "Ingang"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "mute",
+                "title": {
+                    "en": "Mute",
+                    "nl": "Mute"
+                },
+                "args": [{
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        },
+                        "filter": "driver_id=DMamplifier"
+                    },
+                    {
+                        "name": "zone",
+                        "type": "autocomplete",
+                        "placeholder": { "en": "Zone" }
+                    }
+                ]
+            },
+            {
+                "id": "unMute",
+                "title": {
+                    "en": "Turn mute off",
+                    "nl": "Zet mute uit"
+                },
+                "args": [{
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        },
+                        "filter": "driver_id=DMamplifier"
+                    },
+                    {
+                        "name": "zone",
+                        "type": "autocomplete",
+                        "placeholder": { "en": "Zone" }
+                    }
+                ]
+            },
+            {
+                "id": "setVolume",
+                "title": {
+                    "en": "Change volume",
+                    "nl": "Verander volume"
+                },
+                "args": [{
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        },
+                        "filter": "driver_id=DMamplifier"
+                    },
+                    {
+                        "name": "zone",
+                        "type": "autocomplete",
+                        "placeholder": { "en": "Zone" }
+                    },
+                    {
+                        "name": "volume",
+                        "type": "number",
+                        "min": 0,
+                        "max": 99,
+                        "placeholder": {
+                            "en": "Target volume",
+                            "nl": "Gewenst volume"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "setVolumeStep",
+                "title": {
+                    "en": "Change volume up/down in steps",
+                    "nl": "Verhoog/verlaag volume in stappen"
+                },
+                "args": [{
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        },
+                        "filter": "driver_id=DMamplifier"
+                    },
+                    {
+                        "name": "zone",
+                        "type": "autocomplete",
+                        "placeholder": { "en": "Zone" }
+                    },
+                    {
+                        "name": "volumeChange",
+                        "type": "number",
+                        "min": -99,
+                        "max": 99,
+                        "placeholder": {
+                            "en": "Number of steps",
+                            "nl": "Aantal stappen"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "customCommand",
+                "title": {
+                    "en": "Send raw command"
+                },
+                "args": [{
+                        "name": "command",
+                        "type": "text",
+                        "placeholder": {
+                            "en": "command"
+                        }
+                    },
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        },
+                        "filter": "driver_id=DMamplifier"
+                    }
+                ]
             }
-          ]
-      },
-      {
-          "id": "powerOff",
-          "title": {
-              "en": "Power off/standby",
-              "nl": "Uitschakelen/standby"
-          },
-          "args": [
-            {
-              "name": "device",
-              "type": "device",
-              "placeholder": {
-                "en": "Select amplifier",
-                "nl": "Selecteer versterker"
-              },
-              "filter": "driver_id=DMamplifier"
-            },
-            {
-              "name": "zone",
-              "type": "autocomplete",
-              "placeholder": { "en": "Zone" }
-            }
-          ]
-      },
-      {
-          "id": "changeInput",
-          "title": {
-              "en": "Switch input",
-              "nl": "Schakel input"
-          },
-          "args": [
-            {
-              "name": "device",
-              "type": "device",
-              "placeholder": {
-                "en": "Select amplifier",
-                "nl": "Selecteer versterker"
-              },
-              "filter": "driver_id=DMamplifier"
-            },
-            {
-              "name": "zone",
-              "type": "autocomplete",
-              "placeholder": { "en": "Zone" }
-            },
-            {
-              "name": "input",
-              "type": "autocomplete",
-              "placeholder": {
-                "en": "Input",
-                "nl": "Ingang"
-              }
-            }
-          ]
-      },
-      {
-          "id": "mute",
-          "title": {
-              "en": "Mute",
-              "nl": "Mute"
-          },
-          "args": [
-            {
-              "name": "device",
-              "type": "device",
-              "placeholder": {
-                "en": "Select amplifier",
-                "nl": "Selecteer versterker"
-              },
-              "filter": "driver_id=DMamplifier"
-            },
-            {
-              "name": "zone",
-              "type": "autocomplete",
-              "placeholder": { "en": "Zone" }
-            }
-          ]
-      },
-      {
-          "id": "unMute",
-          "title": {
-              "en": "Turn mute off",
-              "nl": "Zet mute uit"
-          },
-          "args": [
-            {
-              "name": "device",
-              "type": "device",
-              "placeholder": {
-                "en": "Select amplifier",
-                "nl": "Selecteer versterker"
-              },
-              "filter": "driver_id=DMamplifier"
-            },
-            {
-              "name": "zone",
-              "type": "autocomplete",
-              "placeholder": { "en": "Zone" }
-            }
-          ]
-      },
-      {
-          "id": "setVolume",
-          "title": {
-              "en": "Change volume",
-              "nl": "Verander volume"
-          },
-          "args": [
-            {
-              "name": "device",
-              "type": "device",
-              "placeholder": {
-                "en": "Select amplifier",
-                "nl": "Selecteer versterker"
-              },
-              "filter": "driver_id=DMamplifier"
-            },
-            {
-              "name": "zone",
-              "type": "autocomplete",
-              "placeholder": { "en": "Zone" }
-            },
-            {
-              "name": "volume",
-              "type": "number",
-              "min": 0,
-              "max": 99,
-              "placeholder": {
-                 "en": "Target volume",
-                 "nl": "Gewenst volume"
-              }
-            }
-          ]
-      },
-      {
-          "id": "setVolumeStep",
-          "title": {
-              "en": "Change volume up/down in steps",
-              "nl": "Verhoog/verlaag volume in stappen"
-          },
-          "args": [
-            {
-              "name": "device",
-              "type": "device",
-              "placeholder": {
-                "en": "Select amplifier",
-                "nl": "Selecteer versterker"
-              },
-              "filter": "driver_id=DMamplifier"
-            },
-            {
-              "name": "zone",
-              "type": "autocomplete",
-              "placeholder": { "en": "Zone" }
-            },
-            {
-              "name": "volumeChange",
-              "type": "number",
-              "min": -99,
-              "max": 99,
-              "placeholder": {
-                "en": "Number of steps",
-                "nl": "Aantal stappen"
-              }
-            }
-          ]
-      },
-      {
-          "id": "customCommand",
-          "title": {
-              "en": "Send raw command"
-          },
-          "args": [
-            {
-              "name": "command",
-              "type": "text",
-              "placeholder": {
-                "en": "command"
-              }
-            },
-            {
-              "name": "device",
-              "type": "device",
-              "placeholder": {
-                "en": "Select amplifier",
-                "nl": "Selecteer versterker"
-              },
-              "filter": "driver_id=DMamplifier"
-            }
-          ]
-      }
-    ]
+        ]
     },
-      "capabilities": {
+    "capabilities": {
         "inputsource": {
-           "type": "string",
-           "title": {
-               "en": "Input Source",
-               "nl": "Ingangsbron"
-           },
-           "getable": true,
-           "setable": true
-          }
-      },
-    "drivers": [
-      {
+            "type": "string",
+            "title": {
+                "en": "Input Source",
+                "nl": "Ingangsbron"
+            },
+            "getable": true,
+            "setable": true
+        }
+    },
+    "drivers": [{
         "id": "DMamplifier",
         "name": {
-          "en": "Marantz amplifier",
-          "nl": "Marantz versterker"
+            "en": "Marantz amplifier",
+            "nl": "Marantz versterker"
         },
         "images": {
-          "large": "drivers/DMamplifier/assets/images/large.jpg",
-          "small": "drivers/DMamplifier/assets/images/small.jpg"
+            "large": "drivers/DMamplifier/assets/images/large.jpg",
+            "small": "drivers/DMamplifier/assets/images/small.jpg"
         },
         "class": "amplifier",
-        "capabilities": [ "onoff", "volume_set", "volume_mute", "volume_up", "volume_down", "inputsource" ],
-        "pair": [
-          {
-            "id": "start"
-          },
-          {
-            "id": "list_devices",
-            "template": "list_devices",
-            "navigation": {
-              "next": "add_devices"
+        "capabilities": ["onoff", "volume_set", "volume_mute", "volume_up", "volume_down", "inputsource"],
+        "pair": [{
+                "id": "start"
+            },
+            {
+                "id": "list_devices",
+                "template": "list_devices",
+                "navigation": {
+                    "next": "add_devices"
+                }
+            },
+            {
+                "id": "add_devices",
+                "template": "add_devices"
             }
-          },
-          {
-            "id": "add_devices",
-            "template": "add_devices"
-          }
         ],
-        "settings": [
-          {
+        "settings": [{
             "type": "group",
             "label": {
-              "en": "General settings",
-              "nl": "Algemene instellingen"
+                "en": "General settings",
+                "nl": "Algemene instellingen"
             },
-            "children": [
-              {
-                "id": "settingIPAddress",
-                "type": "text",
-                "pattern": "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5]).){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$",
-                "label": {
-                  "en": "IP address",
-                  "nl": "IP adres"
+            "children": [{
+                    "id": "settingIPAddress",
+                    "type": "text",
+                    "pattern": "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5]).){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$",
+                    "label": {
+                        "en": "IP address",
+                        "nl": "IP adres"
+                    },
+                    "value": "0.0.0.0"
                 },
-                "value": "0.0.0.0"
-              },
-              {
-                "id": "settingZoneMain",
-                "type": "checkbox",
-                "label": {
-                  "en": "Main Zone",
-                  "nl": "Main Zone"
+                {
+                    "id": "settingZoneMain",
+                    "type": "checkbox",
+                    "label": {
+                        "en": "Main Zone",
+                        "nl": "Main Zone"
+                    },
+                    "value": true
                 },
-                "value": true
-              },
-              {
-                "id": "settingZone2",
-                "type": "checkbox",
-                "label": {
-                  "en": "Enable Zone 2",
-                  "nl": "Zone 2"
+                {
+                    "id": "settingZone2",
+                    "type": "checkbox",
+                    "label": {
+                        "en": "Enable Zone 2",
+                        "nl": "Zone 2"
+                    },
+                    "value": true
                 },
-                "value": true
-              },
-              {
-                "id": "settingZone3",
-                "type": "checkbox",
-                "label": {
-                  "en": "Enable Zone 3",
-                  "nl": "Zone 3"
-                },
-                "value": false
-              }
+                {
+                    "id": "settingZone3",
+                    "type": "checkbox",
+                    "label": {
+                        "en": "Enable Zone 3",
+                        "nl": "Zone 3"
+                    },
+                    "value": false
+                }
             ]
-          }
-        ]
-      }
-    ]
-  }
+        }]
+    }]
+}
