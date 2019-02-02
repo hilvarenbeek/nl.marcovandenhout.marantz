@@ -1,6 +1,6 @@
 {
     "id": "nl.marcovandenhout.marantz",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "compatibility": ">=1.5.0",
     "sdk": 2,
     "name": {
@@ -307,17 +307,6 @@
             }
         ]
     },
-    "capabilities": {
-        "inputsource": {
-            "type": "string",
-            "title": {
-                "en": "Input Source",
-                "nl": "Ingangsbron"
-            },
-            "getable": true,
-            "setable": true
-        }
-    },
     "drivers": [{
         "id": "DMamplifier",
         "name": {
@@ -329,7 +318,7 @@
             "small": "drivers/DMamplifier/assets/images/small.jpg"
         },
         "class": "amplifier",
-        "capabilities": ["onoff", "volume_set", "volume_mute", "volume_up", "volume_down", "inputsource"],
+        "capabilities": ["onoff", "volume_set", "volume_mute", "volume_up", "volume_down"],
         "pair": [{
                 "id": "start"
             },

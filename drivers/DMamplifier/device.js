@@ -11,7 +11,7 @@ var net = require("net");
 var devices = [];
 
 // MVMax is the maximum volume number (e.g. 70)
-var MVMax = 70;
+const MVMax_default = 70;
 
 // The Denon/Marantz IP network interface always uses port 23, which is known as the telnet port.
 var telnetPort = 23;
@@ -224,7 +224,8 @@ class DMDevice extends Homey.Device {
             devices[id] = {};
             devices[id].client = "";
             devices[id].receivedData = "";
-            devices[id].MVMax = 70;
+            devices[id].MVMax = MVMax_default;
+            devices[id].inputsource = "";
 
             // get initial state
             this.getState();
@@ -235,11 +236,6 @@ class DMDevice extends Homey.Device {
             this.registerCapabilityListener('volume_mute', this.onCapabilityVolumeMute.bind(this));
             this.registerCapabilityListener('volume_up', this.onCapabilityVolumeUp.bind(this));
             this.registerCapabilityListener('volume_down', this.onCapabilityVolumeDown.bind(this));
-            this.registerCapabilityListener('inputsource', this.onCapabilityChangeInputSource.bind(this), (value, opts) => {
-                this.log('value', value);
-                this.log('opts', opts);
-                return Promise.resolve();
-            });
 
             // register flow card actions
             let powerOnAction = new Homey.FlowCardAction('powerOn');
@@ -332,7 +328,7 @@ class DMDevice extends Homey.Device {
                 });
             changeInputAction
                 .getArgument('zone')
-                .registerAutocompleteListener((query) => {
+                .registerAutocompleteListener((query, args) => {
                     var items = this.availableZones(args.device, query);
                     return Promise.resolve(items);
                 });
@@ -362,7 +358,6 @@ class DMDevice extends Homey.Device {
                     return Promise.resolve(false);
                 }
             });
-
             triggerInputSourceAction.getArgument('input').registerAutocompleteListener((query) => {
                 var items = this.searchForInputsByValue(query);
                 return Promise.resolve(items);
@@ -372,7 +367,6 @@ class DMDevice extends Homey.Device {
             triggerInputChangedAction.register().registerRunListener((args, state) => {
                 args.device.log("Flow card trigger inputchanged args: " + JSON.stringify(args));
                 args.device.log("Flow card trigger inputchanged state: " + JSON.stringify(state));
-                //this.powerOn(args.device, args.zone.zone);
                 return Promise.resolve(state.id == args.device.getData().id);
             });
 
@@ -381,10 +375,12 @@ class DMDevice extends Homey.Device {
             inputCondition
                 .register()
                 .registerRunListener((args, state) => {
-                    args.device.log("Flow card condition input inputsource capability value: " + args.device.getCapabilityValue("inputsource"));
-                    args.device.log("Flow card condition input args.input.name: " + JSON.stringify(args.input.name));
-                    let inputsource = args.device.getCapabilityValue("inputsource") == args.input.name;
-                    return Promise.resolve(inputsource);
+                    let deviceid = args.device.getData().id;
+                    let actualInput = (devices[deviceid].inputsource) ? devices[deviceid].inputsource : "input not set";
+                    args.device.log("Flow card condition input inputsource capability value: " + actualInput);
+                    args.device.log("Flow card condition input args.input.name: " + args.input.name);
+                    let inputsourcematch = (devices[deviceid].inputsource === args.input.name);
+                    return Promise.resolve(inputsourcematch);
                 });
             inputCondition
                 .getArgument('input')
@@ -402,7 +398,7 @@ class DMDevice extends Homey.Device {
         devices[id] = {};
         devices[id].client = "";
         devices[id].receivedData = "";
-        devices[id].MVMax = 70;
+        devices[id].MVMax = MVMax_default;
     }
 
     // this method is called when the Device is deleted
@@ -436,7 +432,8 @@ class DMDevice extends Homey.Device {
     }
 
     onCapabilityVolumeSet(value, opts, callback) {
-        var targetVolume = Math.round(value * MVMax);
+        let id = this.getData().id;
+        var targetVolume = Math.round(value * devices[id].MVMax);
         this.log("Capability called: volume_set, value: " + value + " calculated volume: " + targetVolume);
         this.setVolume(this, "Main Zone", targetVolume);
         callback(null);
@@ -528,21 +525,13 @@ class DMDevice extends Homey.Device {
         if (receivedData.indexOf("SI") >= 0) {
             for (var i = 0; i < allPossibleInputs.length; i++) {
                 if (receivedData.indexOf("SI" + allPossibleInputs[i].inputName) >= 0) {
-                    device.log("parseResponse: set to source " + allPossibleInputs[i].friendlyName);
-                    if (device.hasCapability("inputsource")) {
-                        device.setCapabilityValue("inputsource", allPossibleInputs[i].friendlyName, function(err, result) {
-                            if (err != null) {
-                                device.log(' setCapabilityValue: inputsource: ' + err);
-                            }
-                            if (result != undefined) {
-                                device.log(' setCapabilityValue: inputsource: ' + result);
-                            }
-                        });
-                    }
+                    let friendlyName = allPossibleInputs[i].friendlyName;
+                    device.log("parseResponse: set to source " + friendlyName);
+                    devices[id].inputsource = friendlyName;
 
                     // trigger the card
-                    let tokens = { 'input': allPossibleInputs[i].friendlyName };
-                    let state = { 'id': id, 'input': allPossibleInputs[i].friendlyName };
+                    let tokens = { 'input': friendlyName };
+                    let state = { 'id': id, 'input': friendlyName };
                     triggerInputSourceAction.trigger(device, tokens, state)
                         .then(this.log)
                         .catch(this.error)
@@ -558,10 +547,8 @@ class DMDevice extends Homey.Device {
             var max = receivedData.lastIndexOf("MVMAX");
             var maxSlice = receivedData.slice(max);
             var maxRes = maxSlice.split(";");
-            MVMax = maxRes[0].substr(6, 2); // ignore possible third digit
-            device.log("parseResponse: found MVMAX of " + MVMax);
-            let id = device.getData().id;
-            devices[id].MVMax = MVMax;
+            devices[id].MVMax = maxRes[0].substr(6, 2); // ignore possible third digit
+            device.log("parseResponse: found MVMAX of " + devices[id].MVMax);
         }
 
         // Run a Regular Expression to find the first Main Volume response (if any)
@@ -570,9 +557,9 @@ class DMDevice extends Homey.Device {
 
         if (MainVolumeFound) {
             var MainVolumeNumber = MainVolumeFound[0].substr(2, 2);
-            var MainVolume = MainVolumeNumber / MVMax;
+            var MainVolume = MainVolumeNumber / devices[id].MVMax;
             device.setCapabilityValue("volume_set", MainVolume);
-            device.log("parseResponse: set setVolume " + MainVolume + " = " + Math.floor((MainVolume * 100).toFixed(3)) + '%');
+            device.log("parseResponse: set setVolume " + MainVolumeNumber + " = " + Math.floor((MainVolume * 100).toFixed(3)) + '% MVMax=' + devices[id].MVMax);
         }
         // done with the receivedData, clear it for the next responses
         devices[id].receivedData = "";
@@ -799,13 +786,22 @@ class DMDevice extends Homey.Device {
         return tempItems;
     }
 
-    availableZones(device, value) {
+    availableZones(device, query) {
         var possibleZones = [];
         var settings = device.getSettings();
         if (settings.settingZoneMain) possibleZones.push({ name: "Main Zone", zone: "Main Zone" });
         if (settings.settingZone2) possibleZones.push({ name: "Zone 2", zone: "Zone2" });
         if (settings.settingZone3) possibleZones.push({ name: "Zone 3", zone: "Zone3" });
-        return possibleZones;
+
+        if (!query) return possibleZones; // just return all zones if there's no query (autocomplete filter) string
+
+        var tempItems = [];
+        possibleZones.forEach(e => {
+            if (e.name.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+                tempItems.push(e);
+            }
+        });
+        return tempItems;
     }
 }
 
