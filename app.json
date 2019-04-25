@@ -1,6 +1,6 @@
 {
     "id": "nl.marcovandenhout.marantz",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "compatibility": ">=1.5.0",
     "sdk": 2,
     "name": {
@@ -278,6 +278,33 @@
                         "placeholder": {
                             "en": "Number of steps",
                             "nl": "Aantal stappen"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "setVolumePercentStep",
+                "title": {
+                    "en": "Change volume by percentage of maximum",
+                    "nl": "Wijzig volume met percentage van maximum"
+                },
+                "args": [{
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        },
+                        "filter": "driver_id=DMamplifier"
+                    },
+                    {
+                        "name": "volumeChangePct",
+                        "type": "number",
+                        "min": -99,
+                        "max": 99,
+                        "placeholder": {
+                            "en": "Volume change",
+                            "nl": "Volume wijziging"
                         }
                     }
                 ]
