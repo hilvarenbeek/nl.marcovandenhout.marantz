@@ -225,6 +225,7 @@ class DMDevice extends Homey.Device {
             devices[id].client = "";
             devices[id].receivedData = "";
             devices[id].MVMax = MVMax_default;
+            devices[id].MainVolume = 0;
             devices[id].inputsource = "";
 
             // get initial state
@@ -316,6 +317,15 @@ class DMDevice extends Homey.Device {
                 .getArgument('zone').registerAutocompleteListener((query, args) => {
                     var items = this.availableZones(args.device, query);
                     return Promise.resolve(items);
+                });
+
+            new Homey.FlowCardAction('setVolumePercentStep')
+                .register()
+                .registerRunListener((args, state) => {
+                    this.log("Flow card action setVolumePercentStep args: " + JSON.stringify(args));
+                    this.log(" setVolumepercentStep volumeChangePct " + args.volumeChangePct);
+                    this.onActionSetVolumePercentStep(args.device, args.volumeChangePct);
+                    return Promise.resolve(true);
                 });
 
             let changeInputAction = new Homey.FlowCardAction('changeInput');
@@ -479,6 +489,11 @@ class DMDevice extends Homey.Device {
         device.setVolumeStep(device, zone, volumeChange);
     }
 
+    onActionSetVolumePercentStep(device, volumeChangePct) {
+        device.log("Action called: setVolumePercentStep");
+        device.setVolumePercentStep(device, volumeChangePct);
+    }
+
     onActionChangeInput(device, zone, input) {
         device.log("Action called: changeInput");
         device.changeInputSource(device, zone, input);
@@ -557,9 +572,10 @@ class DMDevice extends Homey.Device {
 
         if (MainVolumeFound) {
             var MainVolumeNumber = MainVolumeFound[0].substr(2, 2);
-            var MainVolume = MainVolumeNumber / devices[id].MVMax;
+            let MainVolume = MainVolumeNumber / devices[id].MVMax;
             device.setCapabilityValue("volume_set", MainVolume);
             device.log("parseResponse: set setVolume " + MainVolumeNumber + " = " + Math.floor((MainVolume * 100).toFixed(3)) + '% MVMax=' + devices[id].MVMax);
+            devices[id].MainVolume = MainVolume;
         }
         // done with the receivedData, clear it for the next responses
         devices[id].receivedData = "";
@@ -636,7 +652,11 @@ class DMDevice extends Homey.Device {
     setVolume(device, zone, targetVolume) {
         // volume ranges from 00 to 99
         // half steps are possible but not used here, eg 805 is 80.5
-        // according to Marantz protocol some models have 99 as --, some have 00 as --
+        // according to Marantz protocol some models have 99 as --, some have 00 as --        
+        if (targetVolume == null) {
+            device.log("Incorrect targetVolume for setVolume");
+            targetVolume = "01";
+        }
         var asciiVolume = "0" + targetVolume.toString();
         asciiVolume = asciiVolume.slice(-2);
         // supported zones: "Main Zone" (default), "Zone2", "Zone3"
@@ -654,6 +674,18 @@ class DMDevice extends Homey.Device {
         }
         var command = volumeZone + asciiVolume + "\r";
         device.sendCommand(device, command);
+    }
+
+    setVolumePercentStep(device, volumeChangePct) {
+        // Set volume up or down by percentage of maximum (e.g. 10 is 10 percent of max volume louder)
+        let id = device.getData().id;
+        let oldVolume = Math.floor((devices[id].MainVolume * 100).toFixed(3));
+        let MVMax = devices[id].MVMax;
+        let newVolume = oldVolume + ((volumeChangePct / 100) * MVMax);
+        if (newVolume > MVMax) { newVolume = MVMax };
+        if (newVolume < 0) { newVolume = 1 };
+        device.log("oldVolume: " + oldVolume + " MVMax: " + MVMax + " newVolume: " + newVolume);
+        device.setVolume(device, "Main Zone", Math.floor(newVolume).toString());
     }
 
     setVolumeStep(device, zone, volumeChange) {
