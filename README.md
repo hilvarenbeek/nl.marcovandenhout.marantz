@@ -8,6 +8,9 @@ In its current state, the app requires that you enter the amplifier's IP address
 
 # Changelog
 
+**Version 1.1.0:**
+- added volume change action in percentage of maximum volume
+
 **Version 1.0.4:**
 - fixed bug introduced in 1.0.3 with chosing the zone in the change input action card
 - fixed max volume (MVMAX) per device, now calculates percentages for each device (e.g. two amps, one goes to 70, other to 98)
